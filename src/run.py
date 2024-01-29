@@ -2,24 +2,31 @@
 from token_fetcher import TokenFetcher
 import requests
 from time import sleep
+from datetime import datetime, timedelta
+from logger import Logger
 
 # === CONSTANTS ===
 CREDS_FILE_NAME = "creds.txt"
 CRNS_FILE_NAME = "crn_list.txt"
+TIME_FILE_NAME = "time.txt"
 TARGET_URL = "https://kepler-beta.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
 REQUEST_URL = "https://kepler-beta.itu.edu.tr/api/ders-kayit/v21/"
-MAX_TRIES = 1
+MAX_TRIES = 300
 DELAY_BETWEEN_TRIES = .05
 
 def read_inputs() -> tuple[str, str, list[str]]:
-    print("Reading input files...")
+    Logger.log("Reading input files...")
     with open(f"data/{CREDS_FILE_NAME}") as f:
         [login, password] = [line.strip() for line in f.readlines()]
 
     with open(f"data/{CRNS_FILE_NAME}") as f:
         crn_list = list(set([line.strip() for line in f.readlines()]))
 
-    return login, password, crn_list
+    with open(f"data/{TIME_FILE_NAME}") as f:
+        time_data = [int(x) for x in f.read().strip().split(" ")]
+        start_time = datetime(time_data[0], time_data[1], time_data[2], time_data[3], time_data[4])
+
+    return login, password, crn_list, start_time
 
 def request_course_selection(token: str, crn_list: list[str]) -> str:
     response = requests.post(REQUEST_URL, headers={'Authorization': token}, json={"ECRN": crn_list, "SCRN": []})
@@ -29,22 +36,37 @@ def request_course_selection(token: str, crn_list: list[str]) -> str:
 
 if __name__ == "__main__":
     # Read input files
-    login, password, crn_list = read_inputs()
+    login, password, crn_list, start_time = read_inputs()
 
-    # Fetch auth token
+    # Wait untill 2 mins before the registration starts.
+    delta = (start_time - datetime.now() - timedelta(seconds=120)).total_seconds()
+    Logger.log(f"Waiting untill 120 secs before the registration starts ({delta} secs)...")
+    sleep(delta)
+
+    # Log into the website.
     token_fetcher = TokenFetcher(TARGET_URL, login, password)
-    token = token_fetcher.fetch_token()
-    if "ERROR" in token:
-        print("Failed to fetch the token, exiting...")
-        exit(1)
+    token_fetcher.start_driver()
 
-    print(f"Fetched Token: {token}")
+    # Wait untill 45 secs before the registration starts.
+    delta = (start_time - datetime.now() - timedelta(seconds=45)).total_seconds()
+    Logger.log(f"Waiting untill 45 secs before the registration starts ({delta} secs)...")
+    sleep(delta)
+
+    # Fetch auth token, until 10 secs before the registration starts.
+    token = ""
+    while (start_time - datetime.now()).total_seconds() > 10:
+        new_token = token_fetcher.fetch_token()
+        if "ERROR" not in new_token:
+            token = new_token
+
+        sleep(.1)
 
     # Select courses, do it a few times just in case.
+    Logger.log("Selecting courses...")
     for _ in range(MAX_TRIES):
         request_course_selection(token, crn_list)
         sleep(DELAY_BETWEEN_TRIES)
 
-    # Report via Telegram.
-
-    pass
+    # Saving Logs.
+    Logger.log("Reporting via Telegram...")
+    Logger.save_logs()

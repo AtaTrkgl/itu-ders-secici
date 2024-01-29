@@ -1,2 +1,4 @@
 data/creds.txt
 data/crn_list.txt
+data/time.txt
+logs/*

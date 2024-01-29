@@ -3,6 +3,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from seleniumwire import webdriver
+from logger import Logger
 
 import atexit
 
@@ -10,9 +11,11 @@ import atexit
 # === DRIVER CLEANUP ===
 active_drivers = []
 def exit_handler():
-    print("Cleaning up active drivers...")
+    Logger.log("Cleaning up active drivers...")
     for driver in active_drivers:
         driver.quit()
+
+    Logger.save_logs()
 
 atexit.register(exit_handler)
 
