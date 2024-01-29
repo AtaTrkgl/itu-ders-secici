@@ -20,7 +20,7 @@ def read_inputs() -> tuple[str, str, list[str]]:
         [login, password] = [line.strip() for line in f.readlines()]
 
     with open(f"data/{CRNS_FILE_NAME}") as f:
-        crn_list = list(set([line.strip() for line in f.readlines()]))
+        crn_list = list(dict.fromkeys([line.strip() for line in f.readlines()]))
 
     with open(f"data/{TIME_FILE_NAME}") as f:
         time_data = [int(x) for x in f.read().strip().split(" ")]
