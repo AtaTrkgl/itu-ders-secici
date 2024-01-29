@@ -15,7 +15,7 @@ MAX_TRIES = 300
 DELAY_BETWEEN_TRIES = .05
 
 def read_inputs() -> tuple[str, str, list[str]]:
-    Logger.log("Reading input files...")
+    Logger.log("Input dosyaları okunuyor...")
     with open(f"data/{CREDS_FILE_NAME}") as f:
         [login, password] = [line.strip() for line in f.readlines()]
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Wait untill 2 mins before the registration starts.
     delta = (start_time - datetime.now() - timedelta(seconds=120)).total_seconds()
-    Logger.log(f"Waiting untill 120 secs before the registration starts ({delta} secs)...")
+    Logger.log(f"Ders seçimine 2 dakika kalana kadar bekleniyor ({delta} saniye)...")
     sleep(delta)
 
     # Log into the website.
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     # Wait untill 45 secs before the registration starts.
     delta = (start_time - datetime.now() - timedelta(seconds=45)).total_seconds()
-    Logger.log(f"Waiting untill 45 secs before the registration starts ({delta} secs)...")
+    Logger.log(f"Ders seçimine 45 saniye kalana kadar bekleniyor ({delta} saniye)...")
     sleep(delta)
 
     # Fetch auth token, until 10 secs before the registration starts.
@@ -62,11 +62,10 @@ if __name__ == "__main__":
         sleep(.1)
 
     # Select courses, do it a few times just in case.
-    Logger.log("Selecting courses...")
+    Logger.log("Dersler Seçiliyor...")
     for _ in range(MAX_TRIES):
         request_course_selection(token, crn_list)
         sleep(DELAY_BETWEEN_TRIES)
 
     # Saving Logs.
-    Logger.log("Reporting via Telegram...")
     Logger.save_logs()

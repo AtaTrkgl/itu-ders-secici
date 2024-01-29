@@ -12,23 +12,23 @@ TOKEN_URL = "https://kepler-beta.itu.edu.tr/api/ogrenci/Takvim/KayitZamaniKontro
 class TokenFetcher:
     def __init__(self, url: str, login: str, password: str) -> None:
         # Create a new instance of the chrome web driver
-        Logger.log("Initializing web driver...")
+        Logger.log("Web sürücüsü başlatılıyor...")
         self.driver = DriverManager.create_driver()
         self.url = url
         self.creds = [login, password]
         
     def start_driver(self) -> None:
-        Logger.log("Opening Kepler Website...")
+        Logger.log("Kepler açılıyor...")
         self.driver.get(self.url)
 
         # Wait to see if the URL changes to the login page
         sleep(PAGE_LOAD_DELAY)
         if "girisv3.itu.edu.tr" not in self.driver.current_url: 
-            Logger.log("Already logged into Kepler Website, skipping the login process...")
+            Logger.log("Kepler'e giriş yapılmış, giriş yapma aşaması atlanıyor...")
             return
         
         # Login to the system
-        Logger.log("Logging into Kepler Website...")
+        Logger.log("Kepler'e giriş yapılıyor...")
         input_elements = self.driver.find_elements(By.TAG_NAME, "input")
         index = 0
 
@@ -44,17 +44,17 @@ class TokenFetcher:
             index += 1
             sleep(.1)
 
-        Logger.log("Logged into Kepler Website, reloading the target URL...")
+        Logger.log("Kepler'e giriş yapıldı, ders seçim sitesine yönlendiriliyor...")
         self.driver.get(self.url)
         sleep(PAGE_LOAD_DELAY)
 
     def fetch_token(self) -> str:
         # if the url is not the target url, open the target url
         if self.url not in self.driver.current_url:
-            Logger.log("Opening the target URL...")
+            Logger.log("Ders seçim sitesi açılıyor...")
             self.start_driver()
 
-        Logger.log("Fetching API Token...")
+        Logger.log("API Token okunuyor...")
         self.driver.refresh()
         sleep(1)
         for request in self.driver.requests:
@@ -63,13 +63,3 @@ class TokenFetcher:
                 token = request.headers["authorization"]
                 return token
         return "ERROR"
-
-# # Access requests via the `requests` attribute
-# for request in driver.requests:
-#     if request.response:
-#     # here you need to filter the name of the url request you want
-#     # if "name_of_the_url_in_header" in request.url
-#         Logger.log(
-#             request.url
-#             request.headers['cookie']
-#         )

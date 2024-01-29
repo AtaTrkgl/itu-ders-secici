@@ -12,7 +12,7 @@ class Logger:
 
     @staticmethod
     def save_logs():
-        Logger.log("Saving logs...")
+        Logger.log("Çıktılar kaydediliyor...")
         if not path.exists("logs"):
             mkdir("logs")
         with open("logs/logs.txt", "w") as f:

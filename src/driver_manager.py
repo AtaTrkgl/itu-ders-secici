@@ -11,7 +11,7 @@ import atexit
 # === DRIVER CLEANUP ===
 active_drivers = []
 def exit_handler():
-    Logger.log("Cleaning up active drivers...")
+    Logger.log("Aktif web sürücüleri temizleniyor...")
     for driver in active_drivers:
         driver.quit()
 
