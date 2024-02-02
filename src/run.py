@@ -4,6 +4,8 @@ import requests
 from time import sleep
 from datetime import datetime, timedelta
 from logger import Logger
+from driver_manager import DriverManager
+import os
 
 # === CONSTANTS ===
 CREDS_FILE_NAME = "creds.txt"
@@ -35,6 +37,8 @@ def request_course_selection(token: str, crn_list: list[str]) -> str:
     return result_code
 
 if __name__ == "__main__":
+    shutdown_on_complete = input("Ders seçimi tamamlandıktan sonra bilgisayar kapatılsın mı? (e/h): ").lower() == "e"
+    
     # Read input files
     login, password, crn_list, start_time = read_inputs()
 
@@ -67,5 +71,12 @@ if __name__ == "__main__":
         request_course_selection(token, crn_list)
         sleep(DELAY_BETWEEN_TRIES)
 
-    # Saving Logs.
-    Logger.save_logs()
+    # Turn off the computer, if asked for it, else, just exit.
+    if shutdown_on_complete:
+        sleep(5)
+        DriverManager.clear_drivers()
+        Logger.log("Ders seçimi tamamlandı. Bilgisayar kapatılıyor...")
+        os.system("shutdown /s /t 1")
+    else:
+        Logger.log("Ders seçimi tamamlandı. Program sonlandırılıyor...")
+        exit()

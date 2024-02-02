@@ -39,6 +39,8 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    python src/run.py
    ```
 
+5. Program çalışmaya başladığında, ders seçimi sonlanınca bilgisayarın kapatılıp kapatılmayacağı sorulacak, **\[E\]** harfine basmanız durumunda bilgisayar otomatik olarak kapatılacaktır. (NOT: Sadece Windows cihazlarda çalışır.)
+
 ## Nasıl Çalışır / Program Akışı
 
 1. `data` dosyasına girilen _input_ değerleri okunur.

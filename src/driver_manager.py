@@ -7,20 +7,10 @@ from logger import Logger
 
 import atexit
 
-
-# === DRIVER CLEANUP ===
-active_drivers = []
-def exit_handler():
-    Logger.log("Aktif web sürücüleri temizleniyor...")
-    for driver in active_drivers:
-        driver.quit()
-
-    Logger.save_logs()
-
-atexit.register(exit_handler)
-
 # === CLASS DEFINITON ===
 class DriverManager:
+    active_drivers = []
+
     @staticmethod
     def create_driver():
         chrome_options = Options()
@@ -32,5 +22,14 @@ class DriverManager:
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-        active_drivers.append(driver)
+        DriverManager.active_drivers.append(driver)
         return driver
+    
+    @staticmethod
+    def clear_drivers():
+        Logger.log("Aktif web sürücüleri temizleniyor...")
+        for driver in DriverManager.active_drivers:
+            driver.quit()
+
+# === DRIVER CLEANUP ===
+atexit.register(DriverManager.clear_drivers)
