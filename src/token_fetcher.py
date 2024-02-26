@@ -12,7 +12,6 @@ TOKEN_URL = "https://kepler-beta.itu.edu.tr/api/ogrenci/Takvim/KayitZamaniKontro
 class TokenFetcher:
     def __init__(self, url: str, login: str, password: str) -> None:
         # Create a new instance of the chrome web driver
-        Logger.log("Web sürücüsü başlatılıyor...")
         self.driver = DriverManager.create_driver()
         self.url = url
         self.creds = [login, password]

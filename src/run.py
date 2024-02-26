@@ -13,20 +13,22 @@ CRNS_FILE_NAME = "crn_list.txt"
 TIME_FILE_NAME = "time.txt"
 TARGET_URL = "https://kepler-beta.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
 REQUEST_URL = "https://kepler-beta.itu.edu.tr/api/ders-kayit/v21/"
-MAX_TRIES = 300
 DELAY_BETWEEN_TRIES = .05
 
 def read_inputs() -> tuple[str, str, list[str]]:
     Logger.log("Input dosyaları okunuyor...")
     with open(f"data/{CREDS_FILE_NAME}") as f:
         [login, password] = [line.strip() for line in f.readlines()]
+    Logger.log(f"İTÜ hesap bilgileri okundu: {login}, {len(password) * '*'}.")
 
     with open(f"data/{CRNS_FILE_NAME}") as f:
         crn_list = list(dict.fromkeys([line.strip() for line in f.readlines()]))
+    Logger.log(f"CRN listesi okundu: {crn_list}.")
 
     with open(f"data/{TIME_FILE_NAME}") as f:
         time_data = [int(x) for x in f.read().strip().split(" ")]
         start_time = datetime(time_data[0], time_data[1], time_data[2], time_data[3], time_data[4])
+    Logger.log(f"Ders seçim zamanı ve tarihi okundu: ({start_time.strftime('%d/%m/%Y %H:%M')}).")
 
     return login, password, crn_list, start_time
 
@@ -38,7 +40,8 @@ def request_course_selection(token: str, crn_list: list[str]) -> str:
 
 if __name__ == "__main__":
     shutdown_on_complete = input("Ders seçimi tamamlandıktan sonra bilgisayar kapatılsın mı? (e/h): ").lower() == "e"
-    
+    Logger.log(f"Ders seçim tamamlandıktan sonra bilgisayar {'kapatılacak' if shutdown_on_complete else 'kapatılmayacak'}.")
+
     # Read input files
     login, password, crn_list, start_time = read_inputs()
 
@@ -56,19 +59,19 @@ if __name__ == "__main__":
     Logger.log(f"Ders seçimine 45 saniye kalana kadar bekleniyor ({delta} saniye)...")
     sleep(delta)
 
-    # Fetch auth token, until 10 secs before the registration starts.
+    # Fetch auth token, until 30 secs before the registration starts.
     token = ""
-    while (start_time - datetime.now()).total_seconds() > 10:
+    while (start_time - datetime.now()).total_seconds() > 30:
         new_token = token_fetcher.fetch_token()
         if "ERROR" not in new_token:
             token = new_token
 
         sleep(.1)
 
-    # Select courses, do it a few times just in case.
+    # Select courses, do it until 5 secs after the registration starts.
     Logger.log("Dersler Seçiliyor...")
-    for _ in range(MAX_TRIES):
-        request_course_selection(token, crn_list)
+    while (datetime.now() - start_time).total_seconds() < 5:
+        Logger.log(request_course_selection(token, crn_list), silent=True)
         sleep(DELAY_BETWEEN_TRIES)
 
     # Turn off the computer, if asked for it, else, just exit.

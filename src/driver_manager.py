@@ -13,6 +13,7 @@ class DriverManager:
 
     @staticmethod
     def create_driver():
+        Logger.log("Web sürücüsü başlatılıyor...")
         chrome_options = Options()
 
         chrome_options.add_argument("--disable-extensions")

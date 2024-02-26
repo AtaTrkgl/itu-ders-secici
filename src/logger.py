@@ -5,14 +5,14 @@ class Logger:
     logs = ""
 
     @staticmethod
-    def create_message(message):
+    def create_message(message) -> str:
         return f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}"
 
     @staticmethod
-    def log(message):
+    def log(message, silent: bool = False) -> None:
         msg = Logger.create_message(message)
         Logger.logs += msg + "\n"
-        print(msg)
+        if not silent: print(msg)
 
         try:
             Logger.save_logs()
@@ -20,7 +20,7 @@ class Logger:
             pass
 
     @staticmethod
-    def save_logs():
+    def save_logs() -> None:
         if not path.exists("logs"):
             mkdir("logs")
         
