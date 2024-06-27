@@ -13,7 +13,10 @@ CRNS_FILE_NAME = "crn_list.txt"
 TIME_FILE_NAME = "time.txt"
 TARGET_URL = "https://kepler-beta.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
 REQUEST_URL = "https://kepler-beta.itu.edu.tr/api/ders-kayit/v21/"
-DELAY_BETWEEN_TRIES = .05
+
+# Both are in seconds:
+DELAY_BETWEEN_TRIES = 1 # WARNING: If you want to tweak this value, decreasing it may cause you to hit the API rate limit.
+SPAM_DUR = 10
 
 def read_inputs() -> tuple[str, str, list[str]]:
     Logger.log("Input dosyaları okunuyor...")
@@ -68,9 +71,13 @@ if __name__ == "__main__":
 
         sleep(.1)
 
-    # Select courses, do it until 5 secs after the registration starts.
+    # Wait untill the registration starts. (Add a buffer to prevent any possible errors.)
+    Logger.log("Ders seçimine kadar bekleniliyor...")
+    sleep((start_time - datetime.now()).total_seconds() + 0.1)
+
+    # Select courses, do it until `DURATION_TO_SPAM` secs after the registration starts.
     Logger.log("Dersler Seçiliyor...")
-    while (datetime.now() - start_time).total_seconds() < 5:
+    while (datetime.now() - start_time).total_seconds() < SPAM_DUR:
         Logger.log(request_course_selection(token, crn_list), silent=True)
         sleep(DELAY_BETWEEN_TRIES)
 

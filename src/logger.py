@@ -6,7 +6,7 @@ class Logger:
 
     @staticmethod
     def create_message(message) -> str:
-        return f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}"
+        return f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}] {message}"
 
     @staticmethod
     def log(message, silent: bool = False) -> None:
