@@ -11,8 +11,8 @@ import os
 CREDS_FILE_NAME = "creds.txt"
 CRNS_FILE_NAME = "crn_list.txt"
 TIME_FILE_NAME = "time.txt"
-TARGET_URL = "https://kepler-beta.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
-REQUEST_URL = "https://kepler-beta.itu.edu.tr/api/ders-kayit/v21/"
+TARGET_URL = "https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
+REQUEST_URL = "https://obs.itu.edu.tr/api/ders-kayit/v21/"
 
 # Both are in seconds:
 DELAY_BETWEEN_TRIES = 1 # WARNING: If you want to tweak this value, decreasing it may cause you to hit the API rate limit.

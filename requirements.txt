@@ -1,5 +1,5 @@
 requests==2.27.1
-selenium==4.22.0
+selenium==4.24.0
 selenium_wire==5.1.0
-webdriver_manager==4.0.0
+webdriver_manager==4.0.2
 blinker==1.7.0

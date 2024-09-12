@@ -20,11 +20,26 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
         21332
         ```
 
-   3. `data/time.txt` dosyasına ders seçiminizin ne zaman başlayacağını "`YIL AY GÜN SAAT DAKİKA`" formatında girin. Örneği _6 Şubat 2024 Saat:10:00_ için:
+   3. `data/time.txt` dosyasına ders seçiminizin ne zaman başlayacağını "`YIL AY GÜN SAAT DAKİKA`" formatında, _zero-padding_ yapmadan girin. Örneği _6 Şubat 2024 Saat:10:00_ için:
 
         ```text
         2024 2 6 10 0
         ```
+
+   Yukarıdaki 3 adımı tamamladığınızda, dosyanız bu şekilde görünecek:
+   ```
+   .
+   ├── data
+   │   ├── creds.txt
+   │   ├── crn_list.txt
+   │   └── time.txt
+   ├── src
+   │   ├── run.py
+   │   ...
+   ├── README.md
+   └── requirements.txt
+   ...
+   ```
 
 2. Kurulu değil ise _Python_ kurun, proje kodlanırken _3.10.4_ sürümü kullanıldı. ([Detaylı bilgi](https://www.python.org/downloads/)).
 3. Gerekli paketleri kurmak için aşağıdaki komutu çalıştırın.  

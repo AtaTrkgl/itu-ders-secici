@@ -6,7 +6,7 @@ from logger import Logger
 
 # === CONSTANTS ===
 PAGE_LOAD_DELAY = 3
-TOKEN_URL = "https://kepler-beta.itu.edu.tr/api/ogrenci/Takvim/KayitZamaniKontrolu"
+TOKEN_URL = "https://obs.itu.edu.tr/api/ogrenci/Takvim/KayitZamaniKontrolu"
 
 # === CLASS DEFINITON ===
 class TokenFetcher:
