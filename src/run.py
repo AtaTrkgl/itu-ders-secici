@@ -15,8 +15,8 @@ TARGET_URL = "https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
 REQUEST_URL = "https://obs.itu.edu.tr/api/ders-kayit/v21/"
 
 # Both are in seconds:
-DELAY_BETWEEN_TRIES = 1 # WARNING: If you want to tweak this value, decreasing it may cause you to hit the API rate limit.
-SPAM_DUR = 10
+DELAY_BETWEEN_TRIES = 3 # WARNING: If you want to tweak this value, decreasing it may cause you to hit the API rate limit.
+SPAM_DUR = 50 # Deternimes how long the program will spam the API HTTP request.
 
 def read_inputs() -> tuple[str, str, list[str]]:
     Logger.log("Input dosyaları okunuyor...")
