@@ -3,8 +3,13 @@
 Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP request_ kullanarak [İTÜ Kepler](https://kepler-beta.itu.edu.tr/ogrenci/) üzerinden ders seçebilirsiniz.
 
 ## Nasıl Kullanılır
-
-1. İlk olarak yapmanız gereken `data` adında bir klasör oluşturup içerisine gerekli _input_ dosyalarını oluşturmak olacak.
+1. İlk olarak _repo_'yu bilgisayarınıza kurun. Aşağıdaki iki seçenekten istediğiniz ile indirebilirsiniz.
+   - Bilgisayarınızda _Git_ kurulu ise aşağıdaki kod'u kullanın.
+      ```terminal
+      git clone https://github.com/AtaTrkgl/itu-ders-secici.git
+      ```
+   - Manuel olarak indirmek için ise _GitHub_ sayfasındaki yeşil "Code" Tuşuna basın ve açılan pencereden "Download ZIP" tuşuna basın. Ardından indirdiğiniz _ZIP_ dosyasını sağ tıklayıp ayıklayın.
+2. Daha sonra yapmanız gereken, _repo_'nun içinde `data` adında bir klasör oluşturup içerisine gerekli _input_ dosyalarını oluşturmak olacak.
    1. `data/creds.txt` dosyasına, birinci satıra itü hesap adınızı (itu e-posta adresinizin @itu.edu.tr kısmından önceki yeri), ikinci satıra da hesap şifrenizi girin. Örneğin İsmail Koyuncu (<koyuncu@itu.edu.tr>) iseniz:
 
         ```text
@@ -41,20 +46,20 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    ...
    ```
 
-2. Kurulu değil ise _Python_ kurun, proje kodlanırken _3.10.4_ sürümü kullanıldı. ([Detaylı bilgi](https://www.python.org/downloads/)).
-3. Gerekli paketleri kurmak için aşağıdaki komutu çalıştırın.  
+3. Kurulu değil ise _Python_ kurun, proje kodlanırken _3.10.4_ sürümü kullanıldı. ([Detaylı bilgi](https://www.python.org/downloads/)).
+4. Gerekli paketleri kurmak için aşağıdaki komutu çalıştırın.  
 
    ```console
    pip install -r requirements.txt
    ```
 
-4. Programı başlatmak için aşağıdaki kodu çalıştırın, çalıştırmadan önce `data/time.txt` dosyasına girdiğinizi zamana 2 dakikadan fazla kaldığından emin olun. Aksi taktirde hata alacaksınız.
+5. Programı başlatmak için aşağıdaki kodu çalıştırın, çalıştırmadan önce `data/time.txt` dosyasına girdiğinizi zamana 2 dakikadan fazla kaldığından emin olun. Aksi taktirde hata alacaksınız.
 
    ```console
    python src/run.py
    ```
 
-5. Program çalışmaya başladığında, ders seçimi sonlanınca bilgisayarın kapatılıp kapatılmayacağı sorulacak, **\[E\]** harfine basmanız durumunda bilgisayar otomatik olarak kapatılacaktır. (NOT: Sadece Windows cihazlarda çalışır.)
+6. Program çalışmaya başladığında, ders seçimi sonlanınca bilgisayarın kapatılıp kapatılmayacağı sorulacak, **\[E\]** harfine basmanız durumunda bilgisayar otomatik olarak kapatılacaktır. (NOT: Sadece Windows cihazlarda çalışır.)
 
 ## Nasıl Çalışır / Program Akışı
 
@@ -81,3 +86,4 @@ Burada tek dikkat etmeniz gereken şey, test için girdiğiniz zamanın şu anda
 
 - [ ] _API Token_ alınmasını durdurup, _HTTP request_ ile ders seçimine geçmek yerine; _API Token_ alınmasını farklı bir _thread_ üzerinde durmadan devam ettirerek başka bir _thread_ üzerinden de _HTTP request_ atarak hata ihtimali daha da indirilebilir.
 - [ ] Kurulum sırasındaki `data` klasörü ve içindeki dosyaların oluşturulması için daha kullanıcı dostu bir arayüz geliştirilebilir.
+- [ ] Ders seçimi için yollanan _HTTP request_'leri, önceden belirlenmiş bir süre boyunca _spam_'lamak yerine, _HTTP request_'in _return code_'una bakarak devam edilebilir. Derslerin hepsi seçilince otomatik durup seçilememesi durumunda sadece seçilemeyen dersleri almaya çalışmaya devam edebilir. Bu sayede ayrıca yedek CRN sistemi eklenebilir ve seçilemeyen ders yerine yedek CRN alınabilir.
