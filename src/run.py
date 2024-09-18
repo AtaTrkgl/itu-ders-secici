@@ -10,6 +10,7 @@ import os
 # === CONSTANTS ===
 CREDS_FILE_NAME = "creds.txt"
 CRNS_FILE_NAME = "crn_list.txt"
+SCRNS_FILE_NAME = "scrn_list.txt"
 TIME_FILE_NAME = "time.txt"
 TARGET_URL = "https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
 REQUEST_URL = "https://obs.itu.edu.tr/api/ders-kayit/v21/"
@@ -18,14 +19,22 @@ REQUEST_URL = "https://obs.itu.edu.tr/api/ders-kayit/v21/"
 DELAY_BETWEEN_TRIES = 3 # WARNING: If you want to tweak this value, decreasing it may cause you to hit the API rate limit.
 SPAM_DUR = 50 # Deternimes how long the program will spam the API HTTP request.
 
-def read_inputs() -> tuple[str, str, list[str]]:
+def read_inputs() -> tuple[str, str, list[str], list[str], datetime]:
     Logger.log("Input dosyaları okunuyor...")
     with open(f"data/{CREDS_FILE_NAME}") as f:
         [login, password] = [line.strip() for line in f.readlines()]
     Logger.log(f"İTÜ hesap bilgileri okundu: {login}, {len(password) * '*'}.")
 
+    if not os.path.exists(f"data/{SCRNS_FILE_NAME}"):
+        scrn_list = []
+        Logger.log(f"SCRN listesi bulunamadı.")
+    else:
+        with open(f"data/{SCRNS_FILE_NAME}") as f:
+            scrn_list = list(dict.fromkeys([line.strip() for line in f.readlines()]))
+        Logger.log(f"SCRN listesi okundu: {scrn_list}.")
+
     with open(f"data/{CRNS_FILE_NAME}") as f:
-        crn_list = list(dict.fromkeys([line.strip() for line in f.readlines()]))
+            crn_list = list(dict.fromkeys([line.strip() for line in f.readlines()]))
     Logger.log(f"CRN listesi okundu: {crn_list}.")
 
     with open(f"data/{TIME_FILE_NAME}") as f:
@@ -33,10 +42,10 @@ def read_inputs() -> tuple[str, str, list[str]]:
         start_time = datetime(time_data[0], time_data[1], time_data[2], time_data[3], time_data[4])
     Logger.log(f"Ders seçim zamanı ve tarihi okundu: ({start_time.strftime('%d/%m/%Y %H:%M')}).")
 
-    return login, password, crn_list, start_time
+    return login, password, crn_list, scrn_list, start_time
 
-def request_course_selection(token: str, crn_list: list[str]) -> str:
-    response = requests.post(REQUEST_URL, headers={'Authorization': token}, json={"ECRN": crn_list, "SCRN": []})
+def request_course_selection(token: str, crn_list: list[str], scrn_list: list[str]) -> str:
+    response = requests.post(REQUEST_URL, headers={'Authorization': token}, json={"ECRN": crn_list, "SCRN": scrn_list})
     
     result_code = response.text
     return result_code
@@ -46,7 +55,7 @@ if __name__ == "__main__":
     Logger.log(f"Ders seçim tamamlandıktan sonra bilgisayar {'kapatılacak' if shutdown_on_complete else 'kapatılmayacak'}.")
 
     # Read input files
-    login, password, crn_list, start_time = read_inputs()
+    login, password, crn_list, scrn_list, start_time = read_inputs()
 
     # Wait untill 2 mins before the registration starts.
     delta = (start_time - datetime.now() - timedelta(seconds=120)).total_seconds()
@@ -78,7 +87,7 @@ if __name__ == "__main__":
     # Select courses, do it until `DURATION_TO_SPAM` secs after the registration starts.
     Logger.log("Dersler Seçiliyor...")
     while (datetime.now() - start_time).total_seconds() < SPAM_DUR:
-        Logger.log(request_course_selection(token, crn_list), silent=True)
+        Logger.log(request_course_selection(token, crn_list, scrn_list), silent=True)
         sleep(DELAY_BETWEEN_TRIES)
 
     # Turn off the computer, if asked for it, else, just exit.

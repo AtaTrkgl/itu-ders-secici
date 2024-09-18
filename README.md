@@ -2,37 +2,57 @@
 
 Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP request_ kullanarak [İTÜ Kepler](https://kepler-beta.itu.edu.tr/ogrenci/) üzerinden ders seçebilirsiniz.
 
-## Nasıl Kullanılır
+## Nasıl Kurulur ve Kullanılır
+
 1. İlk olarak _repo_'yu bilgisayarınıza kurun. Aşağıdaki iki seçenekten istediğiniz ile indirebilirsiniz.
    - Bilgisayarınızda _Git_ kurulu ise aşağıdaki kod'u kullanın.
-      ```terminal
+
+      ```console
       git clone https://github.com/AtaTrkgl/itu-ders-secici.git
       ```
+
    - Manuel olarak indirmek için ise _GitHub_ sayfasındaki yeşil "Code" Tuşuna basın ve açılan pencereden "Download ZIP" tuşuna basın. Ardından indirdiğiniz _ZIP_ dosyasını sağ tıklayıp ayıklayın.
-2. Daha sonra yapmanız gereken, _repo_'nun içinde `data` adında bir klasör oluşturup içerisine gerekli _input_ dosyalarını oluşturmak olacak.
-   1. `data/creds.txt` dosyasına, birinci satıra itü hesap adınızı (itu e-posta adresinizin @itu.edu.tr kısmından önceki yeri), ikinci satıra da hesap şifrenizi girin. Örneğin İsmail Koyuncu (<koyuncu@itu.edu.tr>) iseniz:
+2. Daha sonra yapmanız gereken, gerekli bilgileri programa girmek. Bunun için aşağıdaki iki yöntemden istediğinizi kullanabilirsiniz.
+   - Gerekli dosyaları oluşturmak için aşağıdaki kodu kullanarak kurulum sihirbazını çalıştırın, sürecin devamında ekrandaki adımları takip edin.
 
-        ```text
-        koyuncu
-        cokGucluSifre123
-        ```
+      ```terminal
+      python src/setup.py
+      ```
 
-   2. `data/crn_list.txt` dosyasına, her satırda farklı bir CRN olacak şekilde almak istediğinizi CRN'leri girin. Örnek:
+   - _repo_'nun içinde `data` adında bir klasör oluşturup içerisine gerekli _input_ dosyalarını oluşturmak olacak
+     1. `data/creds.txt` dosyasına, birinci satıra itü hesap adınızı (itu e-posta adresinizin @itu.edu.tr kısmından önceki yeri), ikinci satıra da hesap şifrenizi girin. Örneğin İsmail Koyuncu (<koyuncu@itu.edu.tr>) iseniz:
 
-        ```text
-        21340
-        21311
-        21332
-        ```
+          ```text
+          koyuncu
+          cokGucluSifre123
+          ```
 
-   3. `data/time.txt` dosyasına ders seçiminizin ne zaman başlayacağını "`YIL AY GÜN SAAT DAKİKA`" formatında, _zero-padding_ yapmadan girin. Örneği _6 Şubat 2024 Saat:10:00_ için:
+     2. `data/crn_list.txt` dosyasına, her satırda farklı bir CRN olacak şekilde almak istediğinizi CRN'leri girin. Örnek:
 
-        ```text
-        2024 2 6 10 0
-        ```
+          ```text
+          21340
+          21311
+          21332
+          ```
 
-   Yukarıdaki 3 adımı tamamladığınızda, dosyanız bu şekilde görünecek:
-   ```
+     3. `data/time.txt` dosyasına ders seçiminizin ne zaman başlayacağını "`YIL AY GÜN SAAT DAKİKA`" formatında, girin. Örneği _6 Şubat 2024 Saat:10:00_ için:
+
+          ```text
+          2024 02 06 10 00
+          ```
+
+     4. **⚠️ Ders bırakmak istemiyorsanız, bu adımı atlayın.** Ders bırakmak için `data/scrn_list.txt` dosyasına, her satırda farklı bir CRN olacak şekilde **bırakmak** istediğinizi CRN'leri girin. Örnek:
+
+          ```text
+          10556
+          10557
+          ```
+
+         
+
+   Yukarıdaki adımlardan herhangi birini tamamladığınızda, dosya yapınız bu şekilde görünecek:
+
+   ```text
    .
    ├── data
    │   ├── creds.txt
