@@ -57,10 +57,17 @@ if __name__ == "__main__":
     # Read input files
     login, password, crn_list, scrn_list, start_time = read_inputs()
 
-    # Wait untill 2 mins before the registration starts.
-    delta = (start_time - datetime.now() - timedelta(seconds=120)).total_seconds()
-    Logger.log(f"Ders seçimine 2 dakika kalana kadar bekleniyor ({delta} saniye)...")
-    sleep(delta)
+    # Wait untill 2 or 5 mins before the registration starts.
+    delta_short = (start_time - datetime.now() - timedelta(seconds=60 *5)).total_seconds()
+    delta = (start_time - datetime.now() - timedelta(seconds=60 * 2)).total_seconds()
+
+    # If the user ran the program really early, open the borwser 5 mins early to account for bad internet.
+    if delta_short > 0:
+        Logger.log(f"Ders seçimine 5 dakika kalana kadar bekleniyor ({delta_short} saniye)...")
+        sleep(delta_short)
+    else:
+        Logger.log(f"Ders seçimine 2 dakika kalana kadar bekleniyor ({delta} saniye)...")
+        sleep(delta)
 
     # Log into the website.
     token_fetcher = TokenFetcher(TARGET_URL, login, password)

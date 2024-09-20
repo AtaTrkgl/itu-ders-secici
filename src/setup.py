@@ -111,4 +111,6 @@ if __name__ == "__main__":
 
     with open(f"data/{SCRN_FILE_NAME}", "w") as f:
         f.writelines(crn_list_to_lines(scrn_list))
+
+    print("Dosyalar başarıyla kaydedildi. Sihirbaz sonlandırıldı.")
     
