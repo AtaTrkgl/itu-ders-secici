@@ -2,7 +2,7 @@ from requests import get
 from datetime import datetime
 from os import path, mkdir
 
-ITU_HELPER_LESSONS_URL = "https://raw.githubusercontent.com/itu-helper/data/main/lesson_rows.txt"
+ITU_HELPER_LESSONS_URL = "https://raw.githubusercontent.com/itu-helper/data/main/lessons.psv"
 
 CREDENTIALS_FILE_NAME = "creds.txt"
 TIME_FILE_NAME = "time.txt"
