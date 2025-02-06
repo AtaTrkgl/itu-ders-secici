@@ -7,12 +7,10 @@ from logger import Logger
 from driver_manager import DriverManager
 from request_manager import RequestManager
 import os
+import json
 
 # === CONSTANTS ===
-CREDS_FILE_NAME = "creds.txt"
-CRNS_FILE_NAME = "crn_list.txt"
-SCRNS_FILE_NAME = "scrn_list.txt"
-TIME_FILE_NAME = "time.txt"
+CONFIG_FILE_PATH = "data/config.json"
 TARGET_URL = "https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayit"
 REQUEST_URL = "https://obs.itu.edu.tr/api/ders-kayit/v21/"
 
@@ -22,31 +20,39 @@ SPAM_DUR = 60 * 10 # Deternimes how long the program will spam the API HTTP requ
 
 def read_inputs() -> tuple[str, str, list[str], list[str], datetime | None]:
     Logger.log("Input dosyaları okunuyor...")
-    with open(f"data/{CREDS_FILE_NAME}") as f:
-        [login, password] = [line.strip() for line in f.readlines()]
+    data = json.load(open(CONFIG_FILE_PATH))
+    
+    # Read account details
+    account = data.get("account")
+    login, password = account.get("username"), account.get("password")
     Logger.log(f"İTÜ hesap bilgileri okundu: {login}, {len(password) * '*'}.")
 
-    if not os.path.exists(f"data/{SCRNS_FILE_NAME}"):
+    # Read course details
+    course_data = data.get("courses")
+
+    if "scrn" in course_data.keys():
+        scrn_list = [str(scrn) for scrn in course_data.get("scrn")]
+        Logger.log(f"SCRN listesi okundu: {scrn_list}.")
+    else:
         scrn_list = []
         Logger.log(f"SCRN listesi bulunamadı.")
+
+    if "crn" in course_data.keys():
+        crn_list = [str(crn) for crn in course_data.get("crn")]
+        Logger.log(f"CRN listesi okundu: {crn_list}.")
     else:
-        with open(f"data/{SCRNS_FILE_NAME}") as f:
-            scrn_list = list(dict.fromkeys([line.strip() for line in f.readlines()]))
-        Logger.log(f"SCRN listesi okundu: {scrn_list}.")
+        crn_list = []
+        Logger.log(f"CRN listesi bulunamadı.")
 
-    with open(f"data/{CRNS_FILE_NAME}") as f:
-            crn_list = list(dict.fromkeys([line.strip() for line in f.readlines()]))
-    Logger.log(f"CRN listesi okundu: {crn_list}.")
-
-    with open(f"data/{TIME_FILE_NAME}") as f:
-        if not f.read().strip():
-            start_time = None
-            Logger.log(f"Ders seçim zamanı ve tarihi girilmedi, ders seçimi hemen başlayacak.")
-        else:
-            time_data = [int(x) for x in f.read().strip().split(" ")]
-            start_time = datetime(time_data[0], time_data[1], time_data[2], time_data[3], time_data[4])
-            Logger.log(f"Ders seçim zamanı ve tarihi okundu: ({start_time.strftime('%d/%m/%Y %H:%M')}).")
-
+    # Read time
+    try:
+        time_data = data.get("time")
+        start_time = datetime(time_data.get("year"), time_data.get("month"), time_data.get("day"), time_data.get("hour"), time_data.get("minute"))
+        Logger.log(f"Ders seçim zamanı ve tarihi okundu: {start_time}.")
+    except Exception:
+        start_time = None
+        Logger.log(f"Ders seçim zamanı ve tarihi girilmedi, ders seçimine hemen başlanacak.")
+    
     return login, password, crn_list, scrn_list, start_time
 
 def request_course_selection(token: str, crn_list: list[str], scrn_list: list[str]) -> str:
@@ -62,18 +68,17 @@ if __name__ == "__main__":
     # Read input files
     login, password, crn_list, scrn_list, start_time = read_inputs()
 
-    # Wait untill 2 or 5 mins before the registration starts.
+    if len(crn_list) == 0 and len(scrn_list) == 0:
+        Logger.log("CRN ve SCRN listeleri boş, ders seçimi yapılmayacak.")
+        exit()
+
+    # Wait untill 5 mins before the registration starts, if time left to selection is < 5 mins, start instantly.
     if start_time is not None:
-        delta_short = (start_time - datetime.now() - timedelta(seconds=60 *5)).total_seconds()
-        delta = (start_time - datetime.now() - timedelta(seconds=60 * 2)).total_seconds()
+        delta = (start_time - datetime.now() - timedelta(seconds=60 *5)).total_seconds()
 
     if start_time is not None:
-        # If the user ran the program really early, open the borwser 5 mins early to account for bad internet.
-        if delta_short > 0:
-            Logger.log(f"Ders seçimine 5 dakika kalana kadar bekleniyor ({delta_short} saniye)...")
-            sleep(delta_short)
-        else:
-            Logger.log(f"Ders seçimine 2 dakika kalana kadar bekleniyor ({delta} saniye)...")
+        if delta > 0:
+            Logger.log(f"Ders seçimine 5 dakika kalana kadar bekleniyor ({delta} saniye)...")
             sleep(delta)
 
     # Log into the website.

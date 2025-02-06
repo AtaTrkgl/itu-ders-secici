@@ -1,13 +1,12 @@
 from requests import get
 from datetime import datetime
 from os import path, mkdir
+import json
 
 ITU_HELPER_LESSONS_URL = "https://raw.githubusercontent.com/itu-helper/data/main/lessons.psv"
 
-CREDENTIALS_FILE_NAME = "creds.txt"
-TIME_FILE_NAME = "time.txt"
-CRN_FILE_NAME = "crn_list.txt"
-SCRN_FILE_NAME = "scrn_list.txt"
+DATA_DIR = "data"
+CONFIG_FILE_NAME = "config.json"
 LINE_SPACES = 2
 
 def eval_input(inp: str):
@@ -96,21 +95,31 @@ if __name__ == "__main__":
     # Save the data.
     print("Kaydediliyor...")
 
+    time_data = [int(x) for x in time_text.split(" ")]
+    data_dict = {
+        "account": {
+            "username": user_name,
+            "password": password
+        },
+        "time": {
+            "year": time_data[0],
+            "month": time_data[1],
+            "day": time_data[2],
+            "hour": time_data[3],
+            "minute": time_data[4]
+        },
+        "courses": {
+            "crn": crn_list,
+            "scrn": scrn_list
+        },
+    }
+
     # Make sure the data dirrectory exists.
-    if not path.exists("data"):
-        mkdir("data")
+    if not path.exists(DATA_DIR):
+        mkdir(DATA_DIR)
 
-    with open(f"data/{CREDENTIALS_FILE_NAME}", "w") as f:
-        f.write(f"{user_name}\n{password}")
+    with open(path.join(DATA_DIR, CONFIG_FILE_NAME), 'w') as f:
+        json.dump(data_dict, f)
 
-    with open(f"data/{TIME_FILE_NAME}", "w") as f:
-        f.write(time_text)
-
-    with open(f"data/{CRN_FILE_NAME}", "w") as f:
-        f.writelines(crn_list_to_lines(crn_list))
-
-    with open(f"data/{SCRN_FILE_NAME}", "w") as f:
-        f.writelines(crn_list_to_lines(scrn_list))
-
-    print("Dosyalar başarıyla kaydedildi. Sihirbaz sonlandırıldı.")
+    print("Dosya başarıyla kaydedildi. Sihirbaz sonlandırıldı.")
     

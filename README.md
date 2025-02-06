@@ -3,6 +3,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/AtaTrkgl/itu-ders-secici)
 ![GitHub License](https://img.shields.io/github/license/AtaTrkgl/itu-ders-secici)
 ![GitHub Repo stars](https://img.shields.io/github/stars/AtaTrkgl/itu-ders-secici?style=flat)
+![Last Test](https://img.shields.io/badge/tested-2024%2F2025%20Güz%20Dönemi-green)
 
 Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP request_ kullanarak [İTÜ Kepler](https://obs.itu.edu.tr/ogrenci/) üzerinden ders seçebilirsiniz.
 
@@ -23,53 +24,81 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    pip install -r requirements.txt
    ```
 
-4. Daha sonra yapmanız gereken, gerekli bilgileri programa girmek. Bunun için aşağıdaki iki yöntemden istediğinizi kullanabilirsiniz.
-   - Gerekli dosyaları oluşturmak için aşağıdaki kodu kullanarak kurulum sihirbazını çalıştırın, sürecin devamında ekrandaki adımları takip edin.
+4. Daha sonra yapmanız gereken, gerekli bilgileri programa girmek. Bunun için kurulum sihirbazını kullanmanız önerilir fakat isterseniz manuel olarak da girebilirsiniz.
+   > [!NOTE]
+   > Kurulum sihirbazı, girilen CRN'lerin doğrulunu [ITU Helper SDK](https://github.com/itu-helper/sdk) ile kontrol etmektedir.
+
+   - **[ÖNERİLEN] Kurulum Sihirbazı ile Kurulum:** Gerekli dosyaları oluşturmak için aşağıdaki kodu kullanarak kurulum sihirbazını çalıştırın, sürecin devamında ekrandaki adımları takip edin.
 
       ```console
       python src/setup.py
       ```
 
-   - _repo_'nun içinde `data` adında bir klasör oluşturup içerisine gerekli _input_ dosyalarını oluşturmak olacak
-     1. `data/creds.txt` dosyasına, birinci satıra itü hesap adınızı (itu e-posta adresinizin @itu.edu.tr kısmından önceki yeri), ikinci satıra da hesap şifrenizi girin. Örneğin İsmail Koyuncu (<koyuncu@itu.edu.tr>) iseniz:
+   - **Manuel Kurulum:** _repo_'nun içinde `data` adında bir klasör oluşturup içerisine gerekli `config.json` adında bir dosya oluşturun. ardından, dosyanın içerisine, aşağıdaki yazıyı yapıştırın ve boşlukları doldurun.
 
-          ```text
-          koyuncu
-          cokGucluSifre123
-          ```
+      <details>
+         <summary>config.json Şablonu</summary>
 
-     2. `data/crn_list.txt` dosyasına, her satırda farklı bir CRN olacak şekilde almak istediğinizi CRN'leri girin. Örnek:
+      ```json
+      {
+         "account":
+         {
+            "username": "{İTÜ KULLANICI ADINIZ}",
+            "password": "{İTÜ ŞİFRENİZ}"
+         },
+         "time":
+         {
+            "year": {DERS SEÇİM ZAMANI - YIL},
+            "month": {DERS SEÇİM ZAMANI - AY},
+            "day": {DERS SEÇİM ZAMANI - GÜN},
+            "hour": {DERS SEÇİM ZAMANI - SAAT},
+            "minute": {DERS SEÇİM ZAMANI - DAKİKA}
+         },
+         "courses":
+         {
+            "crn": [{ALINACAK CRN'ler, virgülle ayırılmış şekilde}],
+            "scrn": [{BIRAKILACAK CRN'ler, virgülle ayırılmış şekilde}]
+         }
+      }  
+      ```
+      </details>
 
-          ```text
-          21340
-          21311
-          21332
-          ```
+      <details>
+         <summary>Doldurulmuş config.json Örneği</summary>
 
-     3. `data/time.txt` dosyasına ders seçiminizin ne zaman başlayacağını "`YIL AY GÜN SAAT DAKİKA`" formatında, girin. Örneği _6 Şubat 2024 Saat:10:00_ için:
+      İsmail Koyuncu (<koyuncu@itu.edu.tr>) için, 10 Şubat 2025, 14:00 tarihinde, _21340_, _21311_ ve _21332_ CRN'li dersleri alıp, hiç bir dersi bırakmayacak `config.json` örneği:
 
-          ```text
-          2024 02 06 10 00
-          ```
+      ```json
+      {
+         "account":
+         {
+            "username": "koyuncu",
+            "password": "cokGucluSifre123"
+         },
+         "time":
+         {
+            "year": 2025,
+            "month": 2,
+            "day": 10,
+            "hour": 14,
+            "minute": 0
+         },
+         "courses":
+         {
+            "crn": [21340, 21311, 21332],
+            "scrn": []
+         }
+      }  
+      ```
 
-          > [!TIP]
-          > Bu dosyayı boş bırakırsanız kod, çalıştırır çalıştırmaz ders seçmeyi deneyecek.
+      </details>
 
-     4. **⚠️ Ders bırakmak istemiyorsanız, bu adımı atlayın.** Ders bırakmak için `data/scrn_list.txt` dosyasına, her satırda farklı bir CRN olacak şekilde **bırakmak** istediğinizi CRN'leri girin. Örnek:
-
-          ```text
-          10556
-          10557
-          ```
-
-   Yukarıdaki adımlardan herhangi birini tamamladığınızda, dosya yapınız bu şekilde görünecek:
+   Yukarıdaki yöntemlerden herhangi birini tamamladığınız takdirde, dosya yapınız aşağıdaki gibi görünmeli.
 
    ```text
    .
    ├── data
-   │   ├── creds.txt
-   │   ├── crn_list.txt
-   │   └── time.txt
+   │   ├── config.json
    ├── src
    │   ├── run.py
    │   ...
@@ -78,7 +107,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    ...
    ```
 
-5. Programı başlatmak için aşağıdaki kodu çalıştırın, çalıştırmadan önce `data/time.txt` dosyasına girdiğinizi zamana 2 dakikadan fazla kaldığından emin olun. Aksi taktirde hata alacaksınız.
+5. Programı başlatmak için aşağıdaki kodu çalıştırın.
 
    ```console
    python src/run.py
