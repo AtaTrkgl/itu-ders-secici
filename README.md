@@ -12,7 +12,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 1. İlk olarak _repo_'yu bilgisayarınıza kurun. Aşağıdaki iki seçenekten istediğiniz ile indirebilirsiniz.
    - Bilgisayarınızda _Git_ kurulu ise aşağıdaki kod'u kullanın.
 
-      ```console
+      ```bash
       git clone https://github.com/AtaTrkgl/itu-ders-secici.git
       ```
 
@@ -20,7 +20,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 2. Kurulu değil ise _Python_ kurun. ([Detaylı bilgi](https://www.python.org/downloads/)). Kurulumda dikkat etmeniz gerekenler; ilk penceredeki _Add Python to PATH_ kutucuğunu ve _Optional Features_ bölümündeki _pip_ kutucuğunu tiklemeniz gerekiyor.
 3. Gerekli paketleri kurmak için aşağıdaki komutu çalıştırın.  
 
-   ```console
+   ```bash
    pip install -r requirements.txt
    ```
 
@@ -30,7 +30,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 
    - **[ÖNERİLEN] Kurulum Sihirbazı ile Kurulum:** Gerekli dosyaları oluşturmak için aşağıdaki kodu kullanarak kurulum sihirbazını çalıştırın, sürecin devamında ekrandaki adımları takip edin.
 
-      ```console
+      ```bash
       python src/setup.py
       ```
 
@@ -98,7 +98,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    ```text
    .
    ├── data
-   │   ├── config.json
+   │   └── config.json
    ├── src
    │   ├── run.py
    │   ...
@@ -109,7 +109,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 
 5. Programı başlatmak için aşağıdaki kodu çalıştırın.
 
-   ```console
+   ```bash
    python src/run.py
    ```
 

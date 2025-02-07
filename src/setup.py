@@ -4,6 +4,7 @@ from os import path, mkdir
 import json
 
 ITU_HELPER_LESSONS_URL = "https://raw.githubusercontent.com/itu-helper/data/main/lessons.psv"
+ITU_HELPER_COURSES_URL = "https://raw.githubusercontent.com/itu-helper/data/main/courses.psv"
 
 DATA_DIR = "data"
 CONFIG_FILE_NAME = "config.json"
@@ -17,35 +18,47 @@ def eval_input(inp: str):
     return inp.strip()
 
 
-def ask_for_crn_list() -> list[str]:
+def ask_for_crn_list() -> tuple[list[str], int]:
     crn_list = []
     last_inp = []
+    total_creds = 0
     while last_inp != "":
         last_inp = eval_input(input("CRN: "))
         if last_inp == "":
             continue
 
-        if last_inp not in crn_to_lesson_line.keys():
+        if last_inp not in crn_to_lesson.keys():
             ans = input("Girilen CRN, ITU Helper veritabanında bulunamadı, yinede eklemek istiyor musunuz? [e/h]").lower()
             if ans != "e":
                 continue
         else:
-            print(f"Dersin ITU Helper veritabanında bulunan adı: {crn_to_lesson_line[last_inp]}")
+            course_code = crn_to_lesson[last_inp]
+            course_name, course_credits = lesson_to_course[course_code]
+
+            print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits}]")
+            total_creds += int(course_credits)
 
         crn_list.append(last_inp)
 
-    return crn_list
+    return crn_list, total_creds
 
+def get_formatted_crn_list(crn_list: list[str]) -> list[str]:
+    return [f"{crn} ({crn_to_lesson[crn] if crn in crn_to_lesson.keys() else '???'})" for crn in crn_list]
 
 def crn_list_to_lines(crn_list: list[str]) -> list[str]:
     return [crn + ("\n" if i != len(crn_list) - 1 else "") for i, crn in enumerate(crn_list)]
 
 if __name__ == "__main__":
+    print("ITU Helper bağlantısı kuruluyor...")
     # Read the course names from ITU Helper.
-    lines = get(ITU_HELPER_LESSONS_URL).text.split("\n")
-    crn_to_lesson_line = {lesson.split("|")[0] : lesson.split("|")[1] for lesson in lines if len(lesson.split("|")) > 1}
+    lesson_lines = get(ITU_HELPER_LESSONS_URL).text.split("\n")
+    crn_to_lesson = {lesson.split("|")[0] : lesson.split("|")[1] for lesson in lesson_lines if len(lesson.split("|")) > 1}
+    
+    course_lines = get(ITU_HELPER_COURSES_URL).text.split("\n")
+    lesson_to_course = {course.split("|")[0] : (course.split("|")[1], course.split("|")[3]) for course in course_lines if len(course.split("|")) > 1}
     
     # Print the startup message.
+    print("\n"*100)
     print("ITU Ders seçici kurulum sihirbazına hoşgeldiniz.")
     print("Herhangi bir adımda \"q\" tuşuna basarak sihibarızı sonlandırabilirsiniz, son adıma kadar girdikleriniz kayıt edilmeyecektir..")
 
@@ -66,7 +79,8 @@ if __name__ == "__main__":
 
     # Ask for the CRNs.
     print("Almak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
-    crn_list = ask_for_crn_list()
+    crn_list, crn_creds = ask_for_crn_list()
+    print("Toplam kredi: ", crn_creds)
 
     print("\n"*LINE_SPACES)
 
@@ -75,7 +89,7 @@ if __name__ == "__main__":
     scrn_list = []
     if wants_to_drop:
         print("Bırakmak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
-        scrn_list = ask_for_crn_list()
+        scrn_list, _ = ask_for_crn_list()
 
     # Print the summary.
     print("Kurulum Tamamlandı, son olarak her şey doğru görünüyor mu?")
@@ -85,8 +99,9 @@ if __name__ == "__main__":
     print("\n"*LINE_SPACES)
     print("Ders Seçim Zamanı: ", datetime(*[int(x) for x in time_text.split(" ")]))
     print("\n"*LINE_SPACES)
-    print("Alınacak CRN'ler: ", crn_list)
-    print("Bırakılacak CRN'ler: ", scrn_list)
+    print("Alınacak CRN'ler: ", get_formatted_crn_list(crn_list))
+    print("Alınacak Kredi: ", crn_creds)
+    print("Bırakılacak CRN'ler: ", get_formatted_crn_list(scrn_list))
     print("\n"*LINE_SPACES)
 
     # Ask to save the data.
