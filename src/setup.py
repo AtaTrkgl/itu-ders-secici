@@ -35,8 +35,14 @@ def ask_for_crn_list() -> tuple[list[str], int]:
             course_code = crn_to_lesson[last_inp]
             course_name, course_credits = lesson_to_course[course_code]
 
-            print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits}]")
-            total_creds += int(course_credits)
+            try:
+                course_credits = float(course_credits)
+            except Exception:
+                course_credits = None
+
+            print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits if course_credits is not None else '???'}]")
+            if course_credits is not None:
+                total_creds += course_credits
 
         crn_list.append(last_inp)
 
