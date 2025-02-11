@@ -29,8 +29,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    ```
 
 4. Daha sonra yapmanız gereken, gerekli bilgileri programa girmek. Bunun için kurulum sihirbazını kullanmanız önerilir fakat isterseniz manuel olarak da girebilirsiniz.
-   > [!NOTE]
-   > Kurulum sihirbazı, girilen CRN'lerin doğrulunu [ITU Helper SDK](https://github.com/itu-helper/sdk) ile kontrol etmektedir.
+   > 💡 Kurulum sihirbazı, girilen CRN'lerin doğrulunu [ITU Helper SDK](https://github.com/itu-helper/sdk) ile kontrol etmektedir.
 
    - **[ÖNERİLEN] Kurulum Sihirbazı ile Kurulum:** Gerekli dosyaları oluşturmak için aşağıdaki kodu kullanarak kurulum sihirbazını çalıştırın, sürecin devamında ekrandaki adımları takip edin.
 
@@ -118,35 +117,44 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    python src/run.py
    ```
 
-   > [!IMPORTANT]
-   > Programı çalıştırmadan önce [test ettiğinizden](#nasıl-test-edilir) emin olun. Program zamanlama için bilgisayarınızın lokal zamanını kullanmaktadır, test sırasında seçtiğiniz vakit ile [İTÜ OBS (Kepler) - Ders Kayıt İşlem Geçmişi](https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayitIslemGecmisi) sayfasında görünen, ilk işlem vakitleri farklı ise kurulum sihirbazından gecikmeyi ayarlamayı unutmayın.
+   > ⚠️ Programı çalıştırmadan önce [test ettiğinizden](#nasıl-test-edilir) emin olun. Program zamanlama için bilgisayarınızın lokal zamanını kullanmaktadır, test sırasında seçtiğiniz vakit ile [İTÜ OBS (Kepler) - Ders Kayıt İşlem Geçmişi](https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayitIslemGecmisi) sayfasında görünen, ilk işlem vakitleri farklı ise kurulum sihirbazından gecikmeyi ayarlamayı unutmayın.
 
 6. Program çalışmaya başladığında, ders seçimi sonlanınca bilgisayarın kapatılıp kapatılmayacağı sorulacak, **\[E\]** harfine basmanız durumunda bilgisayar otomatik olarak kapatılacaktır. (NOT: Sadece Windows cihazlarda çalışır.)
 
 ## Nasıl Çalışır / Program Akışı
 
 1. `data` dosyasına girilen _input_ değerleri okunur.
-2. `data/time.txt` dosyasında belirtirlen ders seçim zamanına `2` dakika (Eğer kod yeterince önce çalıştırılmışsa `5` dakika) kalana kadar beklenir.
-3. [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) sitesi açılır ve `data/creds.txt` dosyasındaki bilgiler ile giriş yapılır.
+2. Belirtirlen ders seçim zamanına `5` dakika kalana kadar beklenir.
+3. [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) sitesi açılır ve `data/config.json` dosyasındaki bilgiler ile giriş yapılır.
 4. Ders seçim zamanına `45` saniye kalana kadar beklenir.
 5. Ders seçim zamanına `30` saniye kalana kadar, sitenin _Network_ sekmesinden ders seçimi için kullanılan _API Token_ durmadan alınır.
-6. Ders seçimine `30` saniye kalması ile beraber, _API Token_ okunması durdurulur ve ders seçimi beklenikir. Ders seçiminin başlangıçından `10` dakika (`src/run.py` dosyasındaki `SPAM_DUR` değişkeninin değeri belirler.) sonraya kadar; `3` saniye (`src/run.py` dosyasındaki `DELAY_BETWEEN_TRIES` değişkeninin değeri belirler.) aralıklarla ders seçimi için _HTTP request_ yollanır. Bu süreç, [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) arayüzüne durmadan CRN'lerin - `data/crn_list.txt` dosyasındaki sırayla - girilip onaylanması ile aynı sonucu yaratır fakat websitesi çökmelerine daha dayanıklıdır. Bü süreçte bütün işlemlerin başarılı olması durumda program otomatik olaran sonlandırılacaktır.
-7. Süreç boyuncaki eylemler loglanır ve `logs/logs.txt` dosyasına kaydedilir.
-8. Program sonlanır ve programın başında onay verildiyse bilgisayar kapatılır.
+6. Ders seçimine `30` saniye kalması ile beraber, _API Token_ okunması durdurulur ve ders seçimi beklenilir.
+7. Ders seçimi başlayana kadar, `0.1` saniyede (`src/run.py` dosyasındaki `DELAY_BETWEEN_TIME_CHECKS` değişkeninin değeri belirler.) bir ders seçim vaktinin gelip gelmediği kontrol edilir.
+
+   > 💡 Eğer program test modunda çalıştırılırsa, bu aşamada sadece girilen vaktin gelmesi beklenir.
+
+8. Ders seçiminin başlandığı algılandıktan `10` dakika (`src/run.py` dosyasındaki `SPAM_DUR` değişkeninin değeri belirler.) sonraya kadar; `3` saniye (`src/run.py` dosyasındaki `DELAY_BETWEEN_TRIES` değişkeninin değeri belirler.) aralıklarla ders seçimi için _HTTP request_ yollanır. Bu süreç, [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) arayüzüne durmadan CRN'lerin - `data/crn_list.txt` dosyasındaki sırayla - girilip onaylanması ile aynı sonucu yaratır fakat websitesi çökmelerine daha dayanıklıdır. Bü süreçte bütün işlemlerin başarılı olması durumda program otomatik olaran sonlandırılacaktır.
+9.  Süreç boyuncaki eylemler loglanır ve `logs/logs.txt` dosyasına kaydedilir.
+10. Program sonlanır ve programın başında onay verildiyse bilgisayar kapatılır.
 
 ## Nasıl Test Edilir
 
 Bu programın en güzel tarafı, ders seçimi için [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) arayüzü yerine _HTTP request_ kullanmasıdır. Bu sayede, aktif bir ders seçim zamanı içinde değilken ve ders kayıt taslak da aktif değilken bile test edebilirsiniz.
 
-`data/time.txt` dosyasında girdiğiniz ders kayıt zamanını test etmek için yakın bir zamana çekerek test edebilirsiniz ve sonuçları [İTÜ OBS (Kepler) - Ders Kayıt İşlem Geçmişi](https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayitIslemGecmisi) sayfasından görebilirsiniz (Hata olarak aktif bir ders seçim zamanı içinde değilsiniz mesajını göreceksiniz).
+Öncelikle test için, ders seçim zamanını daha yakın bir vakit olarak girin, şu andan yaklaşık 5-10 dakika ilerisi önerlir. Daha sonra, programı aşağıdaki komut ile çalıştırın
 
-Burada tek dikkat etmeniz gereken şey, test için girdiğiniz zamanın şu andan 2 dakikadan ileride olması, aksi taktirda program akışının 1. kısmındaki _" ders seçim zamanına 2 dakika kalana kadar beklenir."_ kısmı hataya neden olacaktır.
+
+```bash
+python src/run.py -test
+```
+
+Ardından sonuçları [İTÜ OBS (Kepler) - Ders Kayıt İşlem Geçmişi](https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayitIslemGecmisi) sayfasından görebilirsiniz (Hata olarak aktif bir ders seçim zamanı içinde değilsiniz mesajını göreceksiniz).
 
 ## Geliştirme Planları
 
 > Bu _repo_'ya katkıda bulunmak isterseniz aşağıdaki eklemeler ile başlayabilirsiniz 😊
 
 - [ ] _API Token_ alınmasını durdurup, _HTTP request_ ile ders seçimine geçmek yerine; _API Token_ alınmasını farklı bir _thread_ üzerinde durmadan devam ettirerek başka bir _thread_ üzerinden de _HTTP request_ atarak hata ihtimali daha da indirilebilir.
-- [ ] Kurulum sırasındaki `data` klasörü ve içindeki dosyaların oluşturulması için daha kullanıcı dostu bir arayüz geliştirilebilir. (`setup.py` ile buna benzer bir şey eklendi fakat hala bir arayüz eklenilebilir.)
-- [x] Ders seçimi için yollanan _HTTP request_'leri, önceden belirlenmiş bir süre boyunca _spam_'lamak yerine, _HTTP request_'in _return code_'una bakarak devam edilebilir. Derslerin hepsi seçilince otomatik durup seçilememesi durumunda sadece seçilemeyen dersleri almaya çalışmaya devam edebilir. Bu sayede ayrıca yedek CRN sistemi eklenebilir ve seçilemeyen ders yerine yedek CRN alınabilir.
+- [x] ~~Kurulum sırasındaki `data` klasörü ve içindeki dosyaların oluşturulması için daha kullanıcı dostu bir arayüz geliştirilebilir.~~
+- [x] ~~Ders seçimi için yollanan _HTTP request_'leri, önceden belirlenmiş bir süre boyunca _spam_'lamak yerine, _HTTP request_'in _return code_'una bakarak devam edilebilir. Derslerin hepsi seçilince otomatik durup seçilememesi durumunda sadece seçilemeyen dersleri almaya çalışmaya devam edebilir. Bu sayede ayrıca yedek CRN sistemi eklenebilir ve seçilemeyen ders yerine yedek CRN alınabilir.~~
 - [ ] Yatay geçiş yapanların [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) giriş ekranında hangi bölümünü kullanacağını soran bir sayfa daha çıkıyor. Kod şu anda buna karşın hiç bir şey yapmıyor ve manuel olarak hızlıca seçilmediği sürece çalışmıyor. Bu ekranda otomatik olarak güncel bölümün seçilmesi eklenilebilir.

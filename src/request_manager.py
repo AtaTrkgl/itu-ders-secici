@@ -51,14 +51,25 @@ class RequestManager:
         "Kontenjan Dolu" : "CRN {} için kontenjan dolu olduğundan dolayı alınamadı.",
     }
 
-    def __init__(self, token: str, url: str) -> None:
+    def __init__(self, token: str, course_selection_url: str, course_time_check_url: str) -> None:
         self.token = token
-        self.request_url = url
+        self.course_selection_url = course_selection_url
+        self.course_time_check_url = course_time_check_url
+
+    def _get_headers(self) -> dict[str, str]:
+        return {'Authorization': self.token}
+
+    def check_course_selection_time(self) -> bool:
+        response = requests.get(self.course_time_check_url, headers=self._get_headers())
+        Logger.log(f"Zaman kontrol request response mesajı: {response.text}", silent=True)
+
+        result_json = json.loads(response.text)
+        return result_json["kayitZamanKontrolResult"]["ogrenciSinifaKayitOlabilir"]
 
     def request_course_selection(self, crn_list: list[str], scrn_list: list[str]) -> tuple[list[str], list[str]]:
         # Send the request to the server.
-        response = requests.post(self.request_url, headers={'Authorization': self.token}, json={"ECRN": crn_list, "SCRN": scrn_list})
-        Logger.log(f"Request response mesajı: {response.text}", silent=True)
+        response = requests.post(self.course_selection_url, headers=self._get_headers(), json={"ECRN": crn_list, "SCRN": scrn_list})
+        Logger.log(f"Ders Seçim request response mesajı: {response.text}", silent=True)
         
         result_json = json.loads(response.text)
 

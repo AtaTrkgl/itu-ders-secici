@@ -81,10 +81,6 @@ if __name__ == "__main__":
     time = eval_input(input("Ders seçim saatini girin (HH:mm, örnek: \"17:00\", \" kullanmayın): "))
     time_text = date.replace(".", " ") + " " + time.replace(":", " ")
 
-    print("Programı test ettiyseniz ve İTÜ'nün saati ile lokal saatiniz arasında bir fark var ise, bu farkı saniye cinsinden girin, yok ise boş bırakın.")
-    offset_in_seconds = eval_input(input("saniye cinsinden gecikme: "))
-    offset_in_seconds = int(offset_in_seconds) if offset_in_seconds.isnumeric() else 0
-
     print("\n"*LINE_SPACES)
 
     # Ask for the CRNs.
@@ -101,7 +97,7 @@ if __name__ == "__main__":
         print("Bırakmak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
         scrn_list, _ = ask_for_crn_list()
 
-    selection_datetime = datetime(*[int(x) for x in time_text.split(" ")]) - timedelta(seconds=offset_in_seconds)
+    selection_datetime = datetime(*[int(x) for x in time_text.split(" ")])
 
     # Print the summary.
     print("Kurulum Tamamlandı, son olarak her şey doğru görünüyor mu?")
@@ -109,7 +105,7 @@ if __name__ == "__main__":
     print("ITU Kullanıcı Adı:", user_name)
     print("ITU Kullanıcı Şifresi:", password)
     print("\n"*LINE_SPACES)
-    print(f"Ders Seçim Zamanı ({offset_in_seconds}sn gecikme): ", selection_datetime)
+    print(f"Ders Seçim Zamanı: ", selection_datetime)
     print("\n"*LINE_SPACES)
     print("Alınacak CRN'ler: ", get_formatted_crn_list(crn_list))
     print("Alınacak Kredi: ", crn_creds)
@@ -133,8 +129,7 @@ if __name__ == "__main__":
             "month": selection_datetime.month,
             "day": selection_datetime.day,
             "hour": selection_datetime.hour,
-            "minute": selection_datetime.minute,
-            "seconds": selection_datetime.second
+            "minute": selection_datetime.minute
         },
         "courses": {
             "crn": crn_list,
