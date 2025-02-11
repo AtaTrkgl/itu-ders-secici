@@ -65,6 +65,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
          }
       }  
       ```
+
       </details>
 
       <details>
@@ -117,6 +118,9 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    python src/run.py
    ```
 
+   > [!IMPORTANT]
+   > Programı çalıştırmadan önce [test ettiğinizden](#nasıl-test-edilir) emin olun. Program zamanlama için bilgisayarınızın lokal zamanını kullanmaktadır, test sırasında seçtiğiniz vakit ile [İTÜ OBS (Kepler) - Ders Kayıt İşlem Geçmişi](https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayitIslemGecmisi) sayfasında görünen, ilk işlem vakitleri farklı ise kurulum sihirbazından gecikmeyi ayarlamayı unutmayın.
+
 6. Program çalışmaya başladığında, ders seçimi sonlanınca bilgisayarın kapatılıp kapatılmayacağı sorulacak, **\[E\]** harfine basmanız durumunda bilgisayar otomatik olarak kapatılacaktır. (NOT: Sadece Windows cihazlarda çalışır.)
 
 ## Nasıl Çalışır / Program Akışı
@@ -130,7 +134,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 7. Süreç boyuncaki eylemler loglanır ve `logs/logs.txt` dosyasına kaydedilir.
 8. Program sonlanır ve programın başında onay verildiyse bilgisayar kapatılır.
 
-## Test Etmek
+## Nasıl Test Edilir
 
 Bu programın en güzel tarafı, ders seçimi için [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) arayüzü yerine _HTTP request_ kullanmasıdır. Bu sayede, aktif bir ders seçim zamanı içinde değilken ve ders kayıt taslak da aktif değilken bile test edebilirsiniz.
 

@@ -1,5 +1,5 @@
 from requests import get
-from datetime import datetime
+from datetime import datetime, timedelta
 from os import path, mkdir
 import json
 
@@ -77,9 +77,13 @@ if __name__ == "__main__":
     print("\n"*LINE_SPACES)
 
     # Ask for the course selection time.
-    date = eval_input(input("Ders seçim tarihini girin (YYYY.MM.DD, örnek: \"2024.09.08\"): "))
-    time = eval_input(input("Ders seçim saaiting girin (HH:mm, örnek: \"17:00\") "))
+    date = eval_input(input("Ders seçim tarihini girin (YYYY.MM.DD, örnek: \"2024.09.08\", \" kullanmayın): "))
+    time = eval_input(input("Ders seçim saatini girin (HH:mm, örnek: \"17:00\", \" kullanmayın): "))
     time_text = date.replace(".", " ") + " " + time.replace(":", " ")
+
+    print("Programı test ettiyseniz ve İTÜ'nün saati ile lokal saatiniz arasında bir fark var ise, bu farkı saniye cinsinden girin, yok ise boş bırakın.")
+    offset_in_seconds = eval_input(input("saniye cinsinden gecikme: "))
+    offset_in_seconds = int(offset_in_seconds) if offset_in_seconds.isnumeric() else 0
 
     print("\n"*LINE_SPACES)
 
@@ -97,13 +101,15 @@ if __name__ == "__main__":
         print("Bırakmak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
         scrn_list, _ = ask_for_crn_list()
 
+    selection_datetime = datetime(*[int(x) for x in time_text.split(" ")]) - timedelta(seconds=offset_in_seconds)
+
     # Print the summary.
     print("Kurulum Tamamlandı, son olarak her şey doğru görünüyor mu?")
     print("\n"*LINE_SPACES)
     print("ITU Kullanıcı Adı:", user_name)
     print("ITU Kullanıcı Şifresi:", password)
     print("\n"*LINE_SPACES)
-    print("Ders Seçim Zamanı: ", datetime(*[int(x) for x in time_text.split(" ")]))
+    print(f"Ders Seçim Zamanı ({offset_in_seconds}sn gecikme): ", selection_datetime)
     print("\n"*LINE_SPACES)
     print("Alınacak CRN'ler: ", get_formatted_crn_list(crn_list))
     print("Alınacak Kredi: ", crn_creds)
@@ -123,11 +129,12 @@ if __name__ == "__main__":
             "password": password
         },
         "time": {
-            "year": time_data[0],
-            "month": time_data[1],
-            "day": time_data[2],
-            "hour": time_data[3],
-            "minute": time_data[4]
+            "year": selection_datetime.year,
+            "month": selection_datetime.month,
+            "day": selection_datetime.day,
+            "hour": selection_datetime.hour,
+            "minute": selection_datetime.minute,
+            "seconds": selection_datetime.second
         },
         "courses": {
             "crn": crn_list,

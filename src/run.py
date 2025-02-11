@@ -47,7 +47,7 @@ def read_inputs() -> tuple[str, str, list[str], list[str], datetime | None]:
     # Read time
     try:
         time_data = data.get("time")
-        start_time = datetime(time_data.get("year"), time_data.get("month"), time_data.get("day"), time_data.get("hour"), time_data.get("minute"))
+        start_time = datetime(time_data.get("year"), time_data.get("month"), time_data.get("day"), time_data.get("hour"), time_data.get("minute"), time_data.get("seconds") if "seconds" in time_data.keys() else 0)
         Logger.log(f"Ders seçim zamanı ve tarihi okundu: {start_time}.")
     except Exception:
         start_time = None

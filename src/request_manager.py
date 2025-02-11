@@ -13,7 +13,9 @@ class RequestManager:
         "VAL14",
         "VAL16",
         "ERRLoad",
-        "NULLParam-CheckOgrenciKayitZamaniKontrolu"
+        "NULLParam-CheckOgrenciKayitZamaniKontrolu",
+        # Below are the codes that are not in the original source code.
+        "Kontenjan Dolu"
     ]
     return_values = {
         "successResult": "CRN {} için işlem başarıyla tamamlandı.",
@@ -44,6 +46,9 @@ class RequestManager:
         "ERRLoad": "Sistem geçici olarak yanıt vermiyor.",
         "NULLParam-CheckOgrenciKayitZamaniKontrolu" : "CRN {} kayıt zaman engelinden dolayı alınamadı.",
         "Ekleme İşlemi Başarılı" : "CRN {} için ekleme işlemi başarıyla tamamlandı.",
+
+        # Below are the codes that are not in the original source code.
+        "Kontenjan Dolu" : "CRN {} için kontenjan dolu olduğundan dolayı alınamadı.",
     }
 
     def __init__(self, token: str, url: str) -> None:
