@@ -60,30 +60,34 @@ class RequestManager:
         response = requests.post(self.request_url, headers={'Authorization': self.token}, json={"ECRN": crn_list, "SCRN": scrn_list})
         Logger.log(f"Request response mesajı: {response.text}", silent=True)
         
-        result_json = json.loads(response.text)
+        try:
+            result_json = json.loads(response.text)
 
-        # Log the results of crn_list and determine if it is to be retried.
-        for crn_result in result_json["ecrnResultList"]:
-            crn = crn_result["crn"]
-            result_code = crn_result["resultCode"]
+            # Log the results of crn_list and determine if it is to be retried.
+            for crn_result in result_json["ecrnResultList"]:
+                crn = crn_result["crn"]
+                result_code = crn_result["resultCode"]
 
-            Logger.log(RequestManager.return_values[result_code].format(crn))
-            if result_code in RequestManager.codes_to_try_again:
-                Logger.log(f"CRN {crn} tekrar denenecek...")
-            else:
-                crn_list.remove(crn)
-
-
-        # Log the results of scrn_list and determine if it is to be retried.
-        for scrn_result in result_json["scrnResultList"]:
-            crn = scrn_result["crn"]
-            result_code = scrn_result["resultCode"]
-
-            Logger.log(RequestManager.return_values[result_code].format(crn))
-            if result_code in RequestManager.codes_to_try_again:
-                Logger.log(f"CRN {crn} tekrar denenecek...")
-            else:
-                scrn_list.remove(crn)
+                Logger.log(RequestManager.return_values[result_code].format(crn))
+                if result_code in RequestManager.codes_to_try_again:
+                    Logger.log(f"CRN {crn} tekrar denenecek...")
+                else:
+                    crn_list.remove(crn)
 
 
-        return crn_list, scrn_list
+            # Log the results of scrn_list and determine if it is to be retried.
+            for scrn_result in result_json["scrnResultList"]:
+                crn = scrn_result["crn"]
+                result_code = scrn_result["resultCode"]
+
+                Logger.log(RequestManager.return_values[result_code].format(crn))
+                if result_code in RequestManager.codes_to_try_again:
+                    Logger.log(f"CRN {crn} tekrar denenecek...")
+                else:
+                    scrn_list.remove(crn)
+
+
+            return crn_list, scrn_list
+        except Exception as e:
+            Logger.log(f"CRN listesi işlenirken bir hata meydana geldi: {e}", silent=True)
+            return crn_list, scrn_list
