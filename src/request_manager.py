@@ -63,8 +63,12 @@ class RequestManager:
         response = requests.get(self.course_time_check_url, headers=self._get_headers())
         Logger.log(f"Zaman kontrol request response mesajı: {response.text}", silent=True)
 
-        result_json = json.loads(response.text)
-        return result_json["kayitZamanKontrolResult"]["ogrenciSinifaKayitOlabilir"]
+        try:
+            result_json = json.loads(response.text)
+            enrollment_data = result_json["kayitZamanKontrolResult"]
+            return enrollment_data["ogrenciSinifaKayitOlabilir"] or enrollment_data["ogrenciSiniftanAyrilabilir"]
+        except Exception:
+            return False
 
     def request_course_selection(self, crn_list: list[str], scrn_list: list[str]) -> tuple[list[str], list[str]]:
         # Send the request to the server.

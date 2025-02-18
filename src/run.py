@@ -129,6 +129,7 @@ if __name__ == "__main__":
             sleep(delta)
         
         # Now, instead of waiting another 15 seconds, check the time every `DELAY_BETWEEN_TIME_CHECKS` seconds, to account for the difference in time between the server and the local machine.
+        Logger.log("Ders seçiminin başlaması bekleniyor...")
         while request_manager.check_course_selection_time() is False:
             sleep(DELAY_BETWEEN_TIME_CHECKS)
     # If testing, wait for the time manually.
