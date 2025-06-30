@@ -30,6 +30,8 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    ```
 
 4. Daha sonra yapmanız gereken, gerekli bilgileri programa girmek. Bunun için kurulum sihirbazını kullanmanız önerilir fakat isterseniz manuel olarak da girebilirsiniz.
+   > ⚠️ Program zamanlama için bilgisayarınızın lokal zamanını kullanmaktadır, eğer bilgisayarınız Türkiye saat diliminde değil ise, lokal zamanınıza göre ders seçimi saatini ve tarihini giriniz.
+   
    > 💡 Kurulum sihirbazı, girilen CRN'lerin doğrulunu [ITU Helper SDK](https://github.com/itu-helper/sdk) ile kontrol etmektedir.
 
    - **[ÖNERİLEN] Kurulum Sihirbazı ile Kurulum:** Gerekli dosyaları oluşturmak için aşağıdaki kodu kullanarak kurulum sihirbazını çalıştırın, sürecin devamında ekrandaki adımları takip edin.
@@ -117,8 +119,6 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    ```bash
    python src/run.py
    ```
-
-   > ⚠️ Programı çalıştırmadan önce [test ettiğinizden](#nasıl-test-edilir) emin olun. Program zamanlama için bilgisayarınızın lokal zamanını kullanmaktadır, test sırasında seçtiğiniz vakit ile [İTÜ OBS (Kepler) - Ders Kayıt İşlem Geçmişi](https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayitIslemGecmisi) sayfasında görünen, ilk işlem vakitleri farklı ise kurulum sihirbazından gecikmeyi ayarlamayı unutmayın.
 
 6. Program çalışmaya başladığında, ders seçimi sonlanınca bilgisayarın kapatılıp kapatılmayacağı sorulacak, **\[E\]** harfine basmanız durumunda bilgisayar otomatik olarak kapatılacaktır. (NOT: Sadece Windows cihazlarda çalışır.)
 

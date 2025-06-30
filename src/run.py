@@ -21,7 +21,7 @@ DELAY_BETWEEN_TRIES = 3 # WARNING: If you want to tweak this value, decreasing i
 DELAY_BETWEEN_TIME_CHECKS = .1  # Determines how often the program will check if the course selection time has started, in seconds.
 SPAM_DUR = 60 * 10 # Deternimes how long the program will spam the API HTTP request, in seconds.
 
-def read_inputs() -> tuple[str, str, list[str], list[str], datetime | None]:
+def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], datetime | None]:
     Logger.log("Input dosyaları okunuyor...")
     data = json.load(open(CONFIG_FILE_PATH))
     
@@ -47,8 +47,7 @@ def read_inputs() -> tuple[str, str, list[str], list[str], datetime | None]:
         crn_list = []
         Logger.log(f"CRN listesi bulunamadı.")
 
-    args = parser.parse_args()
-    if args.test:
+    if test_mode:
         Logger.log("Test modu açık, ders kayıt vakti kontrol edilmeyecek.")
         start_time = datetime.now()
     else:
@@ -73,11 +72,19 @@ parser = argparse.ArgumentParser(prog="itu-ders-secici", description="İTÜ OBS 
 parser.add_argument("-test", help="Test modunu açar, ders kayıt vaktinin gelip gelmediğine bakmaksızın seçim yapar.", action="store_true", default=False)
 
 if __name__ == "__main__":
-    shutdown_on_complete = input("Ders seçimi tamamlandıktan sonra bilgisayar kapatılsın mı? (e/h): ").lower() == "e"
+    args = parser.parse_args()
+    test_mode = args.test
+    
+    # If in test mode, spam for 10 seconds only.
+    if test_mode:
+        SPAM_DUR = 10
+
+    # Don't bother asking for shutdown if in test mode.
+    shutdown_on_complete = input("Ders seçimi tamamlandıktan sonra bilgisayar kapatılsın mı? (e/h): ").lower() == "e" if not test_mode else False
     Logger.log(f"Ders seçim tamamlandıktan sonra bilgisayar {'kapatılacak' if shutdown_on_complete else 'kapatılmayacak'}.")
 
     # Read input files
-    login, password, crn_list, scrn_list, start_time = read_inputs()
+    login, password, crn_list, scrn_list, start_time = read_inputs(test_mode)
 
     if len(crn_list) == 0 and len(scrn_list) == 0:
         Logger.log("CRN ve SCRN listeleri boş, ders seçimi yapılmayacak.")
@@ -123,7 +130,7 @@ if __name__ == "__main__":
     request_manager = RequestManager(token, COURSE_SELECTION_URL, COURSE_TIME_CHECK_URL)
 
     # If not testing, wait untill the registration by checking the HTTP request.
-    if not args.test:
+    if not test_mode:
         # First, wait until 15 seconds remaining.
         delta = (start_time - datetime.now() - timedelta(seconds=15)).total_seconds()
         if delta > 0:
