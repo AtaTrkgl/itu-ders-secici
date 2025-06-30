@@ -47,14 +47,19 @@ def read_inputs() -> tuple[str, str, list[str], list[str], datetime | None]:
         crn_list = []
         Logger.log(f"CRN listesi bulunamadı.")
 
-    # Read time
-    try:
-        time_data = data.get("time")
-        start_time = datetime(time_data.get("year"), time_data.get("month"), time_data.get("day"), time_data.get("hour"), time_data.get("minute"), time_data.get("seconds") if "seconds" in time_data.keys() else 0)
-        Logger.log(f"Ders seçim zamanı ve tarihi okundu: {start_time}.")
-    except Exception:
-        start_time = None
-        Logger.log(f"Ders seçim zamanı ve tarihi girilmedi, ders seçimine hemen başlanacak.")
+    args = parser.parse_args()
+    if args.test:
+        Logger.log("Test modu açık, ders kayıt vakti kontrol edilmeyecek.")
+        start_time = datetime.now()
+    else:
+        # Read time
+        try:
+            time_data = data.get("time")
+            start_time = datetime(time_data.get("year"), time_data.get("month"), time_data.get("day"), time_data.get("hour"), time_data.get("minute"), time_data.get("seconds") if "seconds" in time_data.keys() else 0)
+            Logger.log(f"Ders seçim zamanı ve tarihi okundu: {start_time}.")
+        except Exception:
+            start_time = datetime.now()
+            Logger.log(f"Ders seçim zamanı ve tarihi girilmedi, ders seçimine hemen başlanacak.")
     
     return login, password, crn_list, scrn_list, start_time
 
@@ -68,10 +73,6 @@ parser = argparse.ArgumentParser(prog="itu-ders-secici", description="İTÜ OBS 
 parser.add_argument("-test", help="Test modunu açar, ders kayıt vaktinin gelip gelmediğine bakmaksızın seçim yapar.", action="store_true", default=False)
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    if args.test:
-        Logger.log("Test modu açık, ders kayıt vakti kontrol edilmeyecek.")
-    
     shutdown_on_complete = input("Ders seçimi tamamlandıktan sonra bilgisayar kapatılsın mı? (e/h): ").lower() == "e"
     Logger.log(f"Ders seçim tamamlandıktan sonra bilgisayar {'kapatılacak' if shutdown_on_complete else 'kapatılmayacak'}.")
 

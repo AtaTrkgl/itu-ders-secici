@@ -4,6 +4,7 @@
 ![GitHub License](https://img.shields.io/github/license/AtaTrkgl/itu-ders-secici)
 ![GitHub Repo stars](https://img.shields.io/github/stars/AtaTrkgl/itu-ders-secici?style=flat)
 
+![Tested](https://img.shields.io/badge/tested-2024%2F2025%20Yaz%20Dönemi-green)
 ![Tested](https://img.shields.io/badge/tested-2024%2F2025%20Bahar%20Dönemi-green)
 ![Tested](https://img.shields.io/badge/tested-2024%2F2025%20Güz%20Dönemi-green)
 ![Tested](https://img.shields.io/badge/tested-2023%2F2024%20Yaz%20Dönemi-green)
