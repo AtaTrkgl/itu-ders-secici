@@ -27,22 +27,29 @@ def ask_for_crn_list() -> tuple[list[str], int]:
         if last_inp == "":
             continue
 
+        no_match = False
         if last_inp not in crn_to_lesson.keys():
+            no_match = True
+        else:
+            try:
+                course_code = crn_to_lesson[last_inp]
+                course_name, course_credits = lesson_to_course[course_code]
+
+                try:
+                    course_credits = float(course_credits)
+                except Exception:
+                    course_credits = None
+
+                print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits if course_credits is not None else '???'}]")
+                if course_credits is not None:
+                    total_creds += course_credits
+            except Exception as e:
+                no_match = True
+
+        if no_match:
             ans = input("Girilen CRN, ITU Helper veritabanında bulunamadı, yinede eklemek istiyor musunuz? [e/h]").lower()
             if ans != "e":
                 continue
-        else:
-            course_code = crn_to_lesson[last_inp]
-            course_name, course_credits = lesson_to_course[course_code]
-
-            try:
-                course_credits = float(course_credits)
-            except Exception:
-                course_credits = None
-
-            print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits if course_credits is not None else '???'}]")
-            if course_credits is not None:
-                total_creds += course_credits
 
         crn_list.append(last_inp)
 
