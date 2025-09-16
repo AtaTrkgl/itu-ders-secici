@@ -57,7 +57,7 @@ class RequestManager:
         self.course_time_check_url = course_time_check_url
 
     def _get_headers(self) -> dict[str, str]:
-        return {'Authorization': self.token}
+        return {'Authorization': self.token,'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36'}
 
     def check_course_selection_time(self) -> bool:
         response = requests.get(self.course_time_check_url, headers=self._get_headers())
