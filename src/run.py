@@ -156,8 +156,14 @@ if __name__ == "__main__":
         if len(crn_list) == 0 and len(scrn_list) == 0:
             Logger.log(f"Bütün dersler başarıyla alındı/bırakıldı.")
             break
-        Logger.log("Alınamayan dersler tekrar deneniyor...")
-        print()
+
+        if not test_mode:
+            Logger.log("Alınamayan dersler tekrar deneniyor...")
+            print()
+        else:
+            Logger.log("Alınamayan dersler tekrar denenecek fakat test modunda olduğundan dolayı bu aşama geçiliyor...")
+            print()
+            break
 
     if not len(crn_list) == 0 or not len(scrn_list) == 0:
         Logger.log(f"Ders seçimi zaman aşımından dolayı sonlandırıldı. Alınamayan dersler: {crn_list}, Bırakılamayan Dersler {scrn_list}.")
