@@ -165,7 +165,7 @@ if __name__ == "__main__":
             print()
             break
 
-    if not len(crn_list) == 0 or not len(scrn_list) == 0:
+    if not test_mode and (not len(crn_list) == 0 or not len(scrn_list) == 0):
         Logger.log(f"Ders seçimi zaman aşımından dolayı sonlandırıldı. Alınamayan dersler: {crn_list}, Bırakılamayan Dersler {scrn_list}.")
 
     # Turn off the computer, if asked for it, else, just exit.
@@ -176,4 +176,5 @@ if __name__ == "__main__":
         os.system("shutdown /s /t 1")
     else:
         Logger.log("Ders seçimi tamamlandı. Program sonlandırılıyor...")
+        Logger.log("Program işinize yaradıysa GitHub'dan yıldız atmayı unutmayın ⭐")
         exit()
