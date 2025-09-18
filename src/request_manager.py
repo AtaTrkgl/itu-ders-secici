@@ -49,6 +49,7 @@ class RequestManager:
 
         # Below are the codes that are not in the original source code.
         "Kontenjan Dolu" : "CRN {} için kontenjan dolu olduğundan dolayı alınamadı.",
+        "Silme İşlemi Başarılı" : "CRN {} için silme işlemi başarıyla tamamlandı.",
     }
 
     def __init__(self, token: str, course_selection_url: str, course_time_check_url: str) -> None:
