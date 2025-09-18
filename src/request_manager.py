@@ -14,8 +14,10 @@ class RequestManager:
         "VAL16",
         "ERRLoad",
         "NULLParam-CheckOgrenciKayitZamaniKontrolu",
+
         # Below are the codes that are not in the original source code.
-        "Kontenjan Dolu"
+        "Kontenjan Dolu",
+        "VAL21",
     ]
     return_values = {
         "successResult": "CRN {} için işlem başarıyla tamamlandı.",
@@ -50,6 +52,7 @@ class RequestManager:
         # Below are the codes that are not in the original source code.
         "Kontenjan Dolu" : "CRN {} için kontenjan dolu olduğundan dolayı alınamadı.",
         "Silme İşlemi Başarılı" : "CRN {} için silme işlemi başarıyla tamamlandı.",
+        "VAL21": "İşlem sırasında bir hata oluştu.",
     }
 
     def __init__(self, token: str, course_selection_url: str, course_time_check_url: str) -> None:
