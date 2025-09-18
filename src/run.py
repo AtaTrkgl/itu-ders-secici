@@ -48,8 +48,13 @@ def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], 
         Logger.log(f"CRN listesi bulunamadı.")
 
     if test_mode:
-        Logger.log("Test modu açık, ders kayıt vakti kontrol edilmeyecek.")
-        start_time = datetime.now()
+        try:
+            time_data = data.get("time")
+            start_time = datetime(time_data.get("year"), time_data.get("month"), time_data.get("day"), time_data.get("hour"), time_data.get("minute"), time_data.get("seconds") if "seconds" in time_data.keys() else 0)
+            Logger.log(f"Ders seçim zamanı ve tarihi okundu: {start_time}.")
+        except Exception:
+            start_time = datetime.now()
+            Logger.log(f"Ders seçim zamanı ve tarihi girilmedi, ders seçimine hemen başlanacak.")
     else:
         # Read time
         try:
@@ -85,6 +90,37 @@ if __name__ == "__main__":
 
     # Read input files
     login, password, crn_list, scrn_list, start_time = read_inputs(test_mode)
+
+    # In test mode, ask for a one-off date/time using.
+    if test_mode:
+        base = start_time if start_time is not None else datetime.now()
+        Logger.log("[TEST MODU] Bu bir deneme çalıştırmasıdır. Tarih veya saati boş bırakırsanız hemen deneme amaçlı ders seçimine başlanır. Yazdığınız değerler kaydedilmez.")
+        test_date = input(
+            "[TEST MODU] Ders seçim tarihini girin (YYYY.MM.DD, örnek: \"2024.09.08\", \" kullanmayın): "
+        ).strip()
+        test_time = input(
+            "[TEST MODU] Ders seçim saatini girin (HH:mm, örnek: \"17:00\", \" kullanmayın): "
+        ).strip()
+        if not test_date or not test_time:
+            start_time = datetime.now()
+            Logger.log("[TEST MODU] Tarih veya saat boş bırakıldı. Hemen deneme amaçlı ders seçimine başlanacak.")
+        else:
+            try:
+                dparts = [int(x) for x in test_date.replace(".", " ").split()]
+                if len(dparts) != 3:
+                    raise ValueError("date")
+                year, month, day = dparts
+
+                tparts = [int(x) for x in test_time.replace(":", " ").split()]
+                if len(tparts) < 2:
+                    raise ValueError("time")
+                hour, minute = tparts[0], tparts[1]
+
+                start_time = datetime(year, month, day, hour, minute)
+                Logger.log(f"[TEST MODU] Sadece bu deneme için {start_time} kullanılacak. Ayarlarınız değişmedi.\n")
+            except Exception:
+                Logger.log("[TEST MODU] Geçersiz tarih/saat girdiniz. Lütfen örnekteki biçimde girin.")
+                exit(1)
 
     if len(crn_list) == 0 and len(scrn_list) == 0:
         Logger.log("CRN ve SCRN listeleri boş, ders seçimi yapılmayacak.")
