@@ -46,6 +46,7 @@ class RequestManager:
         "ERRLoad": "Sistem geçici olarak yanıt vermiyor.",
         "NULLParam-CheckOgrenciKayitZamaniKontrolu" : "CRN {} kayıt zaman engelinden dolayı alınamadı.",
         "Ekleme İşlemi Başarılı" : "CRN {} için ekleme işlemi başarıyla tamamlandı.",
+        "Silme İşlemi Başarılı" : "CRN {} için silme işlemi başarıyla tamamlandı.",
 
         # Below are the codes that are not in the original source code.
         "Kontenjan Dolu" : "CRN {} için kontenjan dolu olduğundan dolayı alınamadı.",
