@@ -40,14 +40,14 @@ def ask_for_crn_list() -> tuple[list[str], int]:
                 except Exception:
                     course_credits = None
 
-                print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits if course_credits is not None else '???'}].\n\tℹ️ Sorun İTÜ Helper sisteminde olabilir.")
+                print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits if course_credits is not None else '???'}].")
                 if course_credits is not None:
                     total_creds += course_credits
             except Exception as e:
                 no_match = True
 
         if no_match:
-            ans = input("Girilen CRN, ITU Helper veritabanında bulunamadı, yinede eklemek istiyor musunuz? [e/h]").lower()
+            ans = input("Girilen CRN, ITU Helper veritabanında bulunamadı, yinede eklemek istiyor musunuz? [e/h]\n\tℹ️ Sorun İTÜ Helper sisteminde olabilir.").lower()
             if ans != "e":
                 continue
 
