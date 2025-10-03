@@ -69,7 +69,7 @@ def request_course_selection(token: str, crn_list: list[str], scrn_list: list[st
     return result_code
 
 parser = argparse.ArgumentParser(prog="itu-ders-secici", description="İTÜ OBS (Kepler) üzerinden zamanlayıcılı ders seçim uygulaması.")
-parser.add_argument("-test", help="Test modunu açar, ders kayıt vaktinin gelip gelmediğine bakmaksızın seçim yapar.", action="store_true", default=False)
+parser.add_argument("-test", "--test", "-t", help="Test modunu açar, ders kayıt vaktinin gelip gelmediğine bakmaksızın seçim yapar.", action="store_true", default=False)
 
 if __name__ == "__main__":
     args = parser.parse_args()
