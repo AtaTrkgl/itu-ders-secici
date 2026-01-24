@@ -1,5 +1,5 @@
 # === IMPORTS ===
-from token_fetcher import TokenFetcher, ContinuousTokenFetcher
+from token_fetcher import ContinuousTokenFetcher
 import requests
 from time import sleep
 from datetime import datetime, timedelta
