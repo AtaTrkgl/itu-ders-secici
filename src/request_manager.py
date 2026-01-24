@@ -55,13 +55,26 @@ class RequestManager:
         "VAL21": "İşlem sırasında bir hata oluştu.",
     }
 
-    def __init__(self, token: str, course_selection_url: str, course_time_check_url: str) -> None:
-        self.token = token
+    def __init__(self, token, course_selection_url: str, course_time_check_url: str) -> None:
+        """
+        Args:
+            token: String token or callable token getter function
+            course_selection_url: Course selection API URL
+            course_time_check_url: Time check API URL
+        """
+        self._token = token
+        self._token_getter = token if callable(token) else None
         self.course_selection_url = course_selection_url
         self.course_time_check_url = course_time_check_url
 
+    def _get_current_token(self) -> str:
+        """Returns the current token."""
+        if self._token_getter:
+            return self._token_getter()
+        return self._token
+
     def _get_headers(self) -> dict[str, str]:
-        return {'Authorization': self.token,'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36'}
+        return {'Authorization': self._get_current_token(),'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36'}
 
     def check_course_selection_time(self) -> bool:
         response = requests.get(self.course_time_check_url, headers=self._get_headers())
