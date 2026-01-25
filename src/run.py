@@ -20,6 +20,7 @@ COURSE_TIME_CHECK_URL = "https://obs.itu.edu.tr/api/ogrenci/Takvim/KayitZamaniKo
 DELAY_BETWEEN_TRIES = 3 # WARNING: If you want to tweak this value, decreasing it may cause you to hit the API rate limit.
 DELAY_BETWEEN_TIME_CHECKS = .1  # Determines how often the program will check if the course selection time has started, in seconds.
 SPAM_DUR = 60 * 10 # Deternimes how long the program will spam the API HTTP request, in seconds.
+MAX_EXTRA_WAIT_TIME = 60 * 2 # Determines the maximum extra time the program will wait for the course selection to start, in seconds.
 
 def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], datetime | None]:
     Logger.log("Input dosyaları okunuyor...")
@@ -138,8 +139,14 @@ if __name__ == "__main__":
         
         # Now, instead of waiting another 15 seconds, check the time every `DELAY_BETWEEN_TIME_CHECKS` seconds, to account for the difference in time between the server and the local machine.
         Logger.log("Ders seçiminin başlaması bekleniyor...")
+        wt = 0
         while request_manager.check_course_selection_time() is False:
             sleep(DELAY_BETWEEN_TIME_CHECKS)
+            wt += DELAY_BETWEEN_TIME_CHECKS
+            print(wt)
+            if wt >= MAX_EXTRA_WAIT_TIME:
+                Logger.log(f"Ders seçimi zaman kontrolü maksimum bekleme süresine ({MAX_EXTRA_WAIT_TIME} saniye) ulaştı, bekleme sonlandırılıyor.")
+                break
     # If testing, wait for the time manually.
     else:
         delta = (start_time - datetime.now()).total_seconds() + 0.1
