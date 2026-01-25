@@ -26,20 +26,24 @@ class ContinuousTokenFetcher(threading.Thread):
         self._running = False
         self._started_event = threading.Event()
     
-    def start_driver(self) -> None:
+    def login_to_kepler(self) -> None:
         """Starts the driver and performs login."""
-        Logger.log("Kepler açılıyor...")
-        self.driver = DriverManager.create_driver()
+        is_repeat = self._started_event.is_set()
+
+        Logger.log("Kepler açılıyor...", silent=is_repeat)
+        if self.driver is None:
+            self.driver = DriverManager.create_driver()
+        
         self.driver.get(self.url)
 
         # Wait to see if the URL changes to the login page
         sleep(PAGE_LOAD_DELAY)
         if "girisv3.itu.edu.tr" not in self.driver.current_url: 
-            Logger.log("Kepler'e giriş yapılmış, giriş yapma aşaması atlanıyor...")
+            Logger.log("Kepler'e giriş yapılmış, giriş yapma aşaması atlanıyor...", silent=is_repeat)
             return
         
         # Login to the system
-        Logger.log("Kepler'e giriş yapılıyor...")
+        Logger.log("Kepler'e giriş yapılıyor...", silent=is_repeat)
         input_elements = self.driver.find_elements(By.TAG_NAME, "input")
         index = 0
 
@@ -54,12 +58,10 @@ class ContinuousTokenFetcher(threading.Thread):
                 element.send_keys(self.creds[index])
             index += 1
             sleep(.1)
-
-        Logger.log("Kepler'e giriş yapıldı, ders seçim sitesine yönlendiriliyor...")
         
         if "SelectIdentity" in self.driver.current_url:
             sleep(.1)
-            Logger.log("Yatay geçiş hesabı algılandı, aktif İTÜ hesabı seçilecek.")
+            Logger.log("Yatay geçiş hesabı algılandı, aktif İTÜ hesabı seçilecek.", silent=is_repeat)
             identity_cards = self.driver.find_elements(By.CLASS_NAME, "card-body")
             for identity_card in identity_cards:
                 rows = identity_card.find_elements(By.TAG_NAME, "tr")
@@ -79,19 +81,29 @@ class ContinuousTokenFetcher(threading.Thread):
                     sleep(.1)
                     break
         
+        Logger.log("Kepler'e giriş yapıldı, ders seçim sitesine yönlendiriliyor...")
         self.driver.get(self.url)
         sleep(PAGE_LOAD_DELAY)
     
     def _fetch_token_once(self) -> str:
-        """Single token fetch operation."""
+        """Single token fetch operation. Re-login if logged out after refresh."""
         # if the url is not the target url, open the target url
         if self.url not in self.driver.current_url:
-            Logger.log("Ders seçim sitesi açılıyor...")
+            Logger.log("Ders seçim sitesi açılıyor...", silent=self._started_event.is_set())
             self.driver.get(self.url)
             sleep(PAGE_LOAD_DELAY)
 
         self.driver.refresh()
         sleep(1)
+
+        # Check if we got logged out after refresh (login page detected)
+        if "girisv3.itu.edu.tr" in self.driver.current_url:
+            Logger.log("Kepler hesabından çıkıldığı algılandı, tekrar giriş yapılıyor...")
+            self.login_to_kepler()
+            # After re-login, refresh again to ensure requests are captured
+            self.driver.refresh()
+            sleep(1)
+
         for request in self.driver.requests:
             # if There is a response and the request is from the token url
             if request.response and TOKEN_URL in request.url:
@@ -102,15 +114,16 @@ class ContinuousTokenFetcher(threading.Thread):
     def run(self) -> None:
         """Thread main loop - continuously fetches tokens."""
         self._running = True
-        Logger.log("Token fetcher thread başlatıldı, sürekli token alınacak...")
+        Logger.log("Token fetcher thread başlatıldı, sürekli token alınacak...", silent=True)
         
         while self._running:
             try:
+                Logger.log("Yeni API Token aranıyor.", silent=True)
                 new_token = self._fetch_token_once()
-                if new_token and "ERROR" not in new_token:
+                if new_token and "ERROR" not in new_token and new_token != self._token:
                     with self._token_lock:
                         self._token = new_token
-                    Logger.log("API Token güncellendi.", silent=True)
+                    Logger.log("API Token güncellendi.")
                     
                     # Set event when first successful token is received
                     if not self._started_event.is_set():

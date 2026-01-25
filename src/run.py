@@ -102,7 +102,7 @@ if __name__ == "__main__":
     # === MULTI-THREADED TOKEN FETCHING ===
     # Start token fetcher (will continuously refresh token in background)
     token_fetcher = ContinuousTokenFetcher(TARGET_URL, login, password)
-    token_fetcher.start_driver()  # Perform login
+    token_fetcher.login_to_kepler()  # Perform login
     token_fetcher.start()  # Start the thread
     
     # Wait for the first token to be received
