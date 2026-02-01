@@ -146,7 +146,6 @@ if __name__ == "__main__":
         while request_manager.check_course_selection_time() is False:
             sleep(DELAY_BETWEEN_TIME_CHECKS)
             wt += DELAY_BETWEEN_TIME_CHECKS
-            print(wt)
             if wt >= MAX_EXTRA_WAIT_TIME:
                 Logger.log(f"Ders seçimi zaman kontrolü maksimum bekleme süresine ({MAX_EXTRA_WAIT_TIME} saniye) ulaştı, bekleme sonlandırılıyor.")
                 break
