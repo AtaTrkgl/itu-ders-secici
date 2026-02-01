@@ -142,12 +142,11 @@ if __name__ == "__main__":
         
         # Now, instead of waiting another 15 seconds, check the time every `DELAY_BETWEEN_TIME_CHECKS` seconds, to account for the difference in time between the server and the local machine.
         Logger.log("Ders seçiminin başlaması bekleniyor...")
-        wt = 0
+        api_check_start_time = datetime.now()
         while request_manager.check_course_selection_time() is False:
             sleep(DELAY_BETWEEN_TIME_CHECKS)
-            wt += DELAY_BETWEEN_TIME_CHECKS
-            if wt >= MAX_EXTRA_WAIT_TIME:
-                Logger.log(f"Ders seçimi zaman kontrolü maksimum bekleme süresine ({MAX_EXTRA_WAIT_TIME} saniye) ulaştı, bekleme sonlandırılıyor.")
+            if (datetime.now() - api_check_start_time).total_seconds() >= MAX_EXTRA_WAIT_TIME:
+                Logger.log(f"Ders seçimi zaman kontrolü maksimum bekleme süresine ({MAX_EXTRA_WAIT_TIME} saniye) ulaşıldı. Ders seçimi başlamamış gözükmesine rağmen seçmeye çalışılacak.")
                 break
     # If testing, wait for the time manually.
     else:
