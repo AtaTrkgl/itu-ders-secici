@@ -18,7 +18,7 @@ def eval_input(inp: str):
     return inp.strip()
 
 
-def ask_for_crn_list() -> tuple[list[str], int]:
+def ask_for_crn_list(ask_backup: bool = True) -> tuple[list[str], int]:
     crn_list = []
     last_inp = []
     total_creds = 0
@@ -51,12 +51,30 @@ def ask_for_crn_list() -> tuple[list[str], int]:
             if ans != "e":
                 continue
 
-        crn_list.append(last_inp)
+        # Ask for backup CRN
+        crn_entry = last_inp
+        if ask_backup:
+            backup_inp = eval_input(input(f"  ↳ CRN {last_inp} için yedek CRN (kontenjan dolarsa denenecek, boş bırakmak için Enter): "))
+            if backup_inp:
+                crn_entry = f"{last_inp}:{backup_inp}"
+                print(f"    ✅ Yedek CRN {backup_inp} tanımlandı.")
+        
+        crn_list.append(crn_entry)
 
     return crn_list, total_creds
 
 def get_formatted_crn_list(crn_list: list[str]) -> list[str]:
-    return [f"{crn} ({crn_to_lesson[crn] if crn in crn_to_lesson.keys() else '???'})" for crn in crn_list]
+    formatted = []
+    for crn_entry in crn_list:
+        if ":" in crn_entry:
+            primary, backup = crn_entry.split(":", 1)
+            lesson_name = crn_to_lesson.get(primary, '???')
+            backup_name = crn_to_lesson.get(backup, '???')
+            formatted.append(f"{primary} ({lesson_name}) [Yedek: {backup} ({backup_name})]")
+        else:
+            lesson_name = crn_to_lesson.get(crn_entry, '???')
+            formatted.append(f"{crn_entry} ({lesson_name})")
+    return formatted
 
 def crn_list_to_lines(crn_list: list[str]) -> list[str]:
     return [crn + ("\n" if i != len(crn_list) - 1 else "") for i, crn in enumerate(crn_list)]
@@ -102,7 +120,7 @@ if __name__ == "__main__":
     scrn_list = []
     if wants_to_drop:
         print("Bırakmak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
-        scrn_list, _ = ask_for_crn_list()
+        scrn_list, _ = ask_for_crn_list(ask_backup=False)  # No backups for drops
 
     selection_datetime = datetime(*[int(x) for x in time_text.split(" ")])
 

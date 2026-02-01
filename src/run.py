@@ -20,9 +20,9 @@ COURSE_TIME_CHECK_URL = "https://obs.itu.edu.tr/api/ogrenci/Takvim/KayitZamaniKo
 DELAY_BETWEEN_TRIES = 3 # WARNING: If you want to tweak this value, decreasing it may cause you to hit the API rate limit.
 DELAY_BETWEEN_TIME_CHECKS = .1  # Determines how often the program will check if the course selection time has started, in seconds.
 SPAM_DUR = 60 * 10 # Deternimes how long the program will spam the API HTTP request, in seconds.
-MAX_EXTRA_WAIT_TIME = 60 * 2 # Determines the maximum extra time the program will wait for the course selection to start, in seconds.
+API_TIMEOUT_AFTER_START = 1 # If config time has passed and API hasn't responded within this many seconds, proceed anyway.
 
-def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], datetime | None]:
+def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], dict[str, str], datetime | None]:
     Logger.log("Input dosyaları okunuyor...")
     data = json.load(open(CONFIG_FILE_PATH))
     
@@ -33,6 +33,7 @@ def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], 
 
     # Read course details
     course_data = data.get("courses")
+    backup_map = {}  # Maps primary CRN to backup CRN
 
     if "scrn" in course_data.keys():
         scrn_list = [str(scrn) for scrn in course_data.get("scrn")]
@@ -42,7 +43,17 @@ def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], 
         Logger.log(f"SCRN listesi bulunamadı.")
 
     if "crn" in course_data.keys():
-        crn_list = [str(crn) for crn in course_data.get("crn")]
+        crn_list = []
+        for crn_entry in course_data.get("crn"):
+            crn_str = str(crn_entry)
+            # Check if it has a backup (format: "primary:backup")
+            if ":" in crn_str:
+                primary, backup = crn_str.split(":", 1)
+                crn_list.append(primary)
+                backup_map[primary] = backup
+                Logger.log(f"CRN {primary} için yedek CRN {backup} tanımlandı.")
+            else:
+                crn_list.append(crn_str)
         Logger.log(f"CRN listesi okundu: {crn_list}.")
     else:
         crn_list = []
@@ -61,7 +72,7 @@ def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], 
             start_time = datetime.now()
             Logger.log(f"Ders seçim zamanı ve tarihi girilmedi, ders seçimine hemen başlanacak.")
     
-    return login, password, crn_list, scrn_list, start_time
+    return login, password, crn_list, scrn_list, backup_map, start_time
 
 def request_course_selection(token: str, crn_list: list[str], scrn_list: list[str]) -> str:
     response = requests.post(COURSE_SELECTION_URL, headers={'Authorization': token}, json={"ECRN": crn_list, "SCRN": scrn_list})
@@ -71,10 +82,12 @@ def request_course_selection(token: str, crn_list: list[str], scrn_list: list[st
 
 parser = argparse.ArgumentParser(prog="itu-ders-secici", description="İTÜ OBS (Kepler) üzerinden zamanlayıcılı ders seçim uygulaması.")
 parser.add_argument("-test", "--test", "-t", help="Test modunu açar, ders kayıt vaktinin gelip gelmediğine bakmaksızın seçim yapar.", action="store_true", default=False)
+parser.add_argument("--no-api-check", "-n", help="API zaman kontrolünü tamamen atlar, config'deki saat geldiğinde doğrudan ders seçimine başlar.", action="store_true", default=False)
 
 if __name__ == "__main__":
     args = parser.parse_args()
     test_mode = args.test
+    no_api_check = args.no_api_check
     
     # If in test mode, spam for 10 seconds only.
     if test_mode:
@@ -85,7 +98,7 @@ if __name__ == "__main__":
     Logger.log(f"Ders seçim tamamlandıktan sonra bilgisayar {'kapatılacak' if shutdown_on_complete else 'kapatılmayacak'}.")
 
     # Read input files
-    login, password, crn_list, scrn_list, start_time = read_inputs(test_mode)
+    login, password, crn_list, scrn_list, backup_map, start_time = read_inputs(test_mode)
 
     if len(crn_list) == 0 and len(scrn_list) == 0:
         Logger.log("CRN ve SCRN listeleri boş, ders seçimi yapılmayacak.")
@@ -131,25 +144,39 @@ if __name__ == "__main__":
     Logger.log("Ders seçimine kadar bekleniliyor (Chrome penceresini kapatmayın)...")
     
     # Pass token getter function to RequestManager (will get fresh token each time)
-    request_manager = RequestManager(token_fetcher.get_token, COURSE_SELECTION_URL, COURSE_TIME_CHECK_URL)
+    request_manager = RequestManager(token_fetcher.get_token, COURSE_SELECTION_URL, COURSE_TIME_CHECK_URL, backup_map)
 
     # If not testing, wait untill the registration by checking the HTTP request.
     if not test_mode:
-        # First, wait until 15 seconds remaining.
-        delta = (start_time - datetime.now() - timedelta(seconds=15)).total_seconds()
-        if delta > 0:
-            sleep(delta)
-        
-        # Now, instead of waiting another 15 seconds, check the time every `DELAY_BETWEEN_TIME_CHECKS` seconds, to account for the difference in time between the server and the local machine.
-        Logger.log("Ders seçiminin başlaması bekleniyor...")
-        wt = 0
-        while request_manager.check_course_selection_time() is False:
-            sleep(DELAY_BETWEEN_TIME_CHECKS)
-            wt += DELAY_BETWEEN_TIME_CHECKS
-            print(wt)
-            if wt >= MAX_EXTRA_WAIT_TIME:
-                Logger.log(f"Ders seçimi zaman kontrolü maksimum bekleme süresine ({MAX_EXTRA_WAIT_TIME} saniye) ulaştı, bekleme sonlandırılıyor.")
-                break
+        # If no-api-check is enabled, skip API check entirely and wait for config time.
+        if no_api_check:
+            delta = (start_time - datetime.now()).total_seconds()
+            if delta > 0:
+                sleep(delta)
+            Logger.log("API zaman kontrolü atlandı, ders seçimine başlanıyor...")
+        else:
+            # Hybrid approach: Check API but with a timeout after config time passes.
+            # First, wait until 15 seconds remaining.
+            delta = (start_time - datetime.now() - timedelta(seconds=15)).total_seconds()
+            if delta > 0:
+                sleep(delta)
+            
+            Logger.log("Ders seçiminin başlaması bekleniyor (API kontrolü yapılıyor)...")
+            api_check_passed = False
+            while not api_check_passed:
+                api_check_passed = request_manager.check_course_selection_time()
+                
+                if api_check_passed:
+                    Logger.log("API'dan ders seçimi açık yanıtı alındı!")
+                    break
+                
+                # Check if config time has passed
+                time_since_start = (datetime.now() - start_time).total_seconds()
+                if time_since_start >= API_TIMEOUT_AFTER_START:
+                    Logger.log(f"Config saati geçti ve API {API_TIMEOUT_AFTER_START} saniye içinde yanıt vermedi, manuel devam ediliyor...")
+                    break
+                
+                sleep(DELAY_BETWEEN_TIME_CHECKS)
     # If testing, wait for the time manually.
     else:
         delta = (start_time - datetime.now()).total_seconds() + 0.1
