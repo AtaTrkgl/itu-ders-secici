@@ -8,7 +8,7 @@ import threading
 # === CONSTANTS ===
 PAGE_LOAD_DELAY = 3
 TOKEN_URL = "https://obs.itu.edu.tr/api/ogrenci/Takvim/KayitZamaniKontrolu"
-TOKEN_REFRESH_INTERVAL = 0.5  # Token refresh interval (seconds)
+TOKEN_REFRESH_INTERVAL = 60  # Token refresh interval (seconds)
 
 # === CLASS DEFINITON ===
 class ContinuousTokenFetcher(threading.Thread):

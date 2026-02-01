@@ -110,7 +110,7 @@ class RequestManager:
                 crn = crn_result["crn"]
                 result_code = crn_result["resultCode"]
 
-                Logger.log(RequestManager.return_values[result_code].format(crn))
+                Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
                 
                 if result_code in RequestManager.codes_to_try_again:
                     # Check if quota is full and we have a backup
@@ -132,7 +132,7 @@ class RequestManager:
                 crn = scrn_result["crn"]
                 result_code = scrn_result["resultCode"]
 
-                Logger.log(RequestManager.return_values[result_code].format(crn))
+                Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
                 if result_code in RequestManager.codes_to_try_again:
                     Logger.log(f"CRN {crn} tekrar denenecek...")
                 else:
