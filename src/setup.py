@@ -18,14 +18,16 @@ def eval_input(inp: str):
     return inp.strip()
 
 
-def ask_for_crn_list() -> tuple[list[str], int]:
-    print("   İPUCU: Yedek CRN girmek için \"CRN:YEDEK_CRN\" formatını kullanabilirsiniz.")
-    print("   Örnek: \"21345:21346\" → Asıl CRN: 21345, Yedek CRN: 21346")
-    print("   Yedek CRN, asıl CRN'nin kontenjanı dolduğunda otomatik olarak denenecektir.\n")
+def ask_for_crn_list(allow_backup_crns:bool) -> tuple[list[str], float, list[float]]:
+    if allow_backup_crns:
+        print("   İPUCU: Yedek CRN girmek için \"CRN:YEDEK_CRN\" formatını kullanabilirsiniz.")
+        print("   Örnek: \"21345:21346\" → Asıl CRN: 21345, Yedek CRN: 21346")
+        print("   Yedek CRN, asıl CRN'nin kontenjanı dolduğunda otomatik olarak denenecektir.\n")
     
     crn_list = []
     last_inp = []
-    total_creds = 0
+    total_creds = 0.0
+    total_creds_range = [0.0, 0.0]
     while last_inp != "":
         last_inp = eval_input(input("CRN: "))
         if last_inp == "":
@@ -34,10 +36,17 @@ def ask_for_crn_list() -> tuple[list[str], int]:
         # Check if backup CRN format is used
         primary_crn = last_inp.split(":")[0] if ":" in last_inp else last_inp
         backup_crn = last_inp.split(":")[1] if ":" in last_inp else None
+        
+        if not allow_backup_crns and backup_crn is not None:
+            last_inp = last_inp.split(":")[0]
+            backup_crn = None
 
-        no_match = False
+        no_match, backup_crn_no_match = False, False
+        course_credits, backup_course_credits = None, None
         if primary_crn not in crn_to_lesson.keys():
             no_match = True
+        elif backup_crn is not None and backup_crn not in crn_to_lesson.keys():
+            backup_crn_no_match = True
         else:
             try:
                 course_code = crn_to_lesson[primary_crn]
@@ -52,21 +61,48 @@ def ask_for_crn_list() -> tuple[list[str], int]:
                 if course_credits is not None:
                     total_creds += course_credits
                 
-                # Show backup info if provided
-                if backup_crn:
-                    backup_course = crn_to_lesson.get(backup_crn, "???")
-                    print(f"  ↳ Yedek CRN: {backup_crn} ({backup_course})")
             except Exception as e:
                 no_match = True
+            
+            if backup_crn:
+                try:
+                    backup_course_code = crn_to_lesson[backup_crn]
+                    backup_course_name, backup_course_credits = lesson_to_course[backup_course_code]
+                    
+                    try:
+                        backup_course_credits = float(backup_course_credits)
+                    except Exception:
+                        backup_course_credits = None
+                    
+                    print(f"  ↳ Yedek CRN: {backup_crn}.")
+                    print(f"  ↳ Yedek dersin ITU Helper veritabanında bulunan adı: {backup_course_code} ({backup_course_name}) [Kredi: {backup_course_credits if backup_course_credits is not None else '???'}].")
+                except Exception as e:
+                    backup_crn_no_match = True
 
-        if no_match:
-            ans = input("Girilen CRN, ITU Helper veritabanında bulunamadı, yinede eklemek istiyor musunuz? [e/h]\n\tℹ️ Sorun İTÜ Helper sisteminde olabilir.").lower()
+        if course_credits is not None:
+            if backup_course_credits is not None:
+                total_creds_range[0] += min(course_credits, backup_course_credits)
+                total_creds_range[1] += max(course_credits, backup_course_credits)
+            else:
+                total_creds_range[0] += course_credits
+                total_creds_range[1] += course_credits
+
+        if no_match or backup_crn_no_match:
+            error_message = ""
+            if no_match and backup_crn_no_match:
+                error_message = f"Girilen CRN'ler ({primary_crn} ve {backup_crn}) ITU Helper veritabanında bulunamadı."
+            elif no_match:
+                error_message = f"Girilen CRN ({primary_crn}) ITU Helper veritabanında bulunamadı."
+            else:
+                error_message = f"Girilen yedek CRN ({backup_crn}) ITU Helper veritabanında bulunamadı."
+
+            ans = input(f"{error_message} Yinede eklemek istiyor musunuz? [e/h]\n\tℹ️ Sorun İTÜ Helper sisteminde olabilir.").lower()
             if ans != "e":
                 continue
         
         crn_list.append(last_inp)
 
-    return crn_list, total_creds
+    return crn_list, total_creds, total_creds_range
 
 def get_formatted_crn_list(crn_list: list[str]) -> list[str]:
     formatted = []
@@ -115,8 +151,10 @@ if __name__ == "__main__":
 
     # Ask for the CRNs.
     print("Almak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
-    crn_list, crn_creds = ask_for_crn_list()
+    crn_list, crn_creds, crn_creds_range = ask_for_crn_list(allow_backup_crns=True)
     print("Toplam kredi: ", crn_creds)
+    if crn_creds_range[0] != crn_creds_range[1]:
+        print(f"Toplam kredi aralığı (yedek CRN'ler dahil): {crn_creds_range[0]} - {crn_creds_range[1]}")
 
     print("\n"*LINE_SPACES)
 
@@ -125,7 +163,7 @@ if __name__ == "__main__":
     scrn_list = []
     if wants_to_drop:
         print("Bırakmak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
-        scrn_list, _ = ask_for_crn_list()
+        scrn_list, _, __ = ask_for_crn_list(allow_backup_crns=False)
 
     selection_datetime = datetime(*[int(x) for x in time_text.split(" ")])
 
