@@ -53,6 +53,7 @@ class RequestManager:
         "Kontenjan Dolu" : "CRN {} için kontenjan dolu olduğundan dolayı alınamadı.",
         "Silme İşlemi Başarılı" : "CRN {} için silme işlemi başarıyla tamamlandı.",
         "VAL21": "İşlem sırasında bir hata oluştu.",
+        "VAL22": "CRN {} daha önce CC ve üstü harf notu ile verildiği için yükseltmeye alınamaz."
     }
 
     def __init__(self, token, course_selection_url: str, course_time_check_url: str) -> None:
