@@ -19,6 +19,10 @@ class RequestManager:
         "Kontenjan Dolu",
         "VAL21",
     ]
+    
+    # Codes that indicate quota is full - should switch to backup CRN
+    quota_full_codes = ["VAL06", "Kontenjan Dolu"]
+    
     return_values = {
         "successResult": "CRN {} için işlem başarıyla tamamlandı.",
         "errorResult": "CRN {} için Operasyon tamamlanamadı.",
@@ -56,17 +60,20 @@ class RequestManager:
         "VAL22": "CRN {} daha önce CC ve üstü harf notu ile verildiği için yükseltmeye alınamaz."
     }
 
-    def __init__(self, token, course_selection_url: str, course_time_check_url: str) -> None:
+    def __init__(self, token, course_selection_url: str, course_time_check_url: str, backup_map: dict[str, str] = None) -> None:
         """
         Args:
             token: String token or callable token getter function
             course_selection_url: Course selection API URL
             course_time_check_url: Time check API URL
+            backup_map: Dictionary mapping primary CRN to backup CRN
         """
         self._token = token
         self._token_getter = token if callable(token) else None
         self.course_selection_url = course_selection_url
         self.course_time_check_url = course_time_check_url
+        self.backup_map = backup_map or {}
+        self.used_backups = {}  # Track which backups have been activated
 
     def _get_current_token(self) -> str:
         """Returns the current token."""
@@ -104,9 +111,19 @@ class RequestManager:
                 crn = crn_result["crn"]
                 result_code = crn_result["resultCode"]
 
-                Logger.log(RequestManager.return_values[result_code].format(crn))
+                Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
+                
                 if result_code in RequestManager.codes_to_try_again:
-                    Logger.log(f"CRN {crn} tekrar denenecek...")
+                    # Check if quota is full and we have a backup
+                    if result_code in RequestManager.quota_full_codes and crn in self.backup_map:
+                        backup_crn = self.backup_map[crn]
+                        Logger.log(f"  ↳ CRN {crn} kontenjan dolu! Yedek CRN {backup_crn} deneniyor...")
+                        # Replace primary with backup in the list
+                        crn_list.remove(crn)
+                        crn_list.append(backup_crn)
+                        self.used_backups[crn] = backup_crn
+                    else:
+                        Logger.log(f"CRN {crn} tekrar denenecek...")
                 else:
                     crn_list.remove(crn)
 
@@ -116,7 +133,7 @@ class RequestManager:
                 crn = scrn_result["crn"]
                 result_code = scrn_result["resultCode"]
 
-                Logger.log(RequestManager.return_values[result_code].format(crn))
+                Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
                 if result_code in RequestManager.codes_to_try_again:
                     Logger.log(f"CRN {crn} tekrar denenecek...")
                 else:

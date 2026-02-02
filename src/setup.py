@@ -19,6 +19,10 @@ def eval_input(inp: str):
 
 
 def ask_for_crn_list() -> tuple[list[str], int]:
+    print("   İPUCU: Yedek CRN girmek için \"CRN:YEDEK_CRN\" formatını kullanabilirsiniz.")
+    print("   Örnek: \"21345:21346\" → Asıl CRN: 21345, Yedek CRN: 21346")
+    print("   Yedek CRN, asıl CRN'nin kontenjanı dolduğunda otomatik olarak denenecektir.\n")
+    
     crn_list = []
     last_inp = []
     total_creds = 0
@@ -27,12 +31,16 @@ def ask_for_crn_list() -> tuple[list[str], int]:
         if last_inp == "":
             continue
 
+        # Check if backup CRN format is used
+        primary_crn = last_inp.split(":")[0] if ":" in last_inp else last_inp
+        backup_crn = last_inp.split(":")[1] if ":" in last_inp else None
+
         no_match = False
-        if last_inp not in crn_to_lesson.keys():
+        if primary_crn not in crn_to_lesson.keys():
             no_match = True
         else:
             try:
-                course_code = crn_to_lesson[last_inp]
+                course_code = crn_to_lesson[primary_crn]
                 course_name, course_credits = lesson_to_course[course_code]
 
                 try:
@@ -43,6 +51,11 @@ def ask_for_crn_list() -> tuple[list[str], int]:
                 print(f"Dersin ITU Helper veritabanında bulunan adı: {course_code} ({course_name}) [Kredi: {course_credits if course_credits is not None else '???'}].")
                 if course_credits is not None:
                     total_creds += course_credits
+                
+                # Show backup info if provided
+                if backup_crn:
+                    backup_course = crn_to_lesson.get(backup_crn, "???")
+                    print(f"  ↳ Yedek CRN: {backup_crn} ({backup_course})")
             except Exception as e:
                 no_match = True
 
@@ -50,13 +63,23 @@ def ask_for_crn_list() -> tuple[list[str], int]:
             ans = input("Girilen CRN, ITU Helper veritabanında bulunamadı, yinede eklemek istiyor musunuz? [e/h]\n\tℹ️ Sorun İTÜ Helper sisteminde olabilir.").lower()
             if ans != "e":
                 continue
-
+        
         crn_list.append(last_inp)
 
     return crn_list, total_creds
 
 def get_formatted_crn_list(crn_list: list[str]) -> list[str]:
-    return [f"{crn} ({crn_to_lesson[crn] if crn in crn_to_lesson.keys() else '???'})" for crn in crn_list]
+    formatted = []
+    for crn_entry in crn_list:
+        if ":" in crn_entry:
+            primary, backup = crn_entry.split(":", 1)
+            lesson_name = crn_to_lesson.get(primary, '???')
+            backup_name = crn_to_lesson.get(backup, '???')
+            formatted.append(f"{primary} ({lesson_name}) [Yedek: {backup} ({backup_name})]")
+        else:
+            lesson_name = crn_to_lesson.get(crn_entry, '???')
+            formatted.append(f"{crn_entry} ({lesson_name})")
+    return formatted
 
 def crn_list_to_lines(crn_list: list[str]) -> list[str]:
     return [crn + ("\n" if i != len(crn_list) - 1 else "") for i, crn in enumerate(crn_list)]
@@ -152,4 +175,3 @@ if __name__ == "__main__":
         json.dump(data_dict, f)
 
     print("Dosya başarıyla kaydedildi. Sihirbaz sonlandırıldı.")
-    
