@@ -4,8 +4,8 @@ from logger import Logger
 
 class RequestManager:
 
-    # Source: https://github.com/MustafaKrc/ITU-CRN-Picker/blob/ffb2ca20c197092f54ade466439d890cd61acab6/core/crn_picker.py#L31
-    codes_to_try_again = [  # The codes that indicate the operation was not successful but can be tried again.
+    # The codes that indicate the operation was not successful but can be tried again.
+    codes_to_try_again = [
         "VAL01",
         "VAL02",
         "VAL06",
@@ -23,6 +23,7 @@ class RequestManager:
     # Codes that indicate quota is full - should switch to backup CRN
     quota_full_codes = ["VAL06", "Kontenjan Dolu"]
     
+    # Source: https://github.com/MustafaKrc/ITU-CRN-Picker/blob/ffb2ca20c197092f54ade466439d890cd61acab6/core/crn_picker.py#L31
     return_values = {
         "successResult": "CRN {} için işlem başarıyla tamamlandı.",
         "errorResult": "CRN {} için Operasyon tamamlanamadı.",
@@ -73,7 +74,7 @@ class RequestManager:
         self.course_selection_url = course_selection_url
         self.course_time_check_url = course_time_check_url
         self.backup_map = backup_map or {}
-        self.used_backups = {}  # Track which backups have been activated
+        self.original_backup_map = dict(self.backup_map)  # Keep a copy of the original backup map
 
     def _get_current_token(self) -> str:
         """Returns the current token."""
@@ -113,20 +114,58 @@ class RequestManager:
 
                 Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
                 
-                if result_code in RequestManager.codes_to_try_again:
-                    # Check if quota is full and we have a backup
-                    if result_code in RequestManager.quota_full_codes and crn in self.backup_map:
+                is_retriable = result_code in RequestManager.codes_to_try_again
+                is_quota_full = result_code in RequestManager.quota_full_codes
+                has_backup = crn in self.backup_map
+                is_backup_crn = crn in self.original_backup_map.values()
+            
+                if is_retriable:
+                    if is_quota_full and has_backup:
                         backup_crn = self.backup_map[crn]
-                        Logger.log(f"  ↳ CRN {crn} kontenjan dolu! Yedek CRN {backup_crn} deneniyor...")
-                        # Replace primary with backup in the list
+                        if not is_backup_crn:
+                            Logger.log(f"CRN {crn} yerine yedeği ({backup_crn}) denencek tekrar denenecek...")
+                        else:
+                            Logger.log(f"Yedek CRN {crn} başarısız oldu, orijinal CRN {backup_crn} denenmeye devam edilecek...")
+
                         crn_list.remove(crn)
                         crn_list.append(backup_crn)
-                        self.used_backups[crn] = backup_crn
+
+                        self.backup_map.pop(crn)
+                        self.backup_map[backup_crn] = crn
                     else:
                         Logger.log(f"CRN {crn} tekrar denenecek...")
+                        pass
+                # We can't retry
                 else:
-                    crn_list.remove(crn)
+                    # Check if this CRN is currently a backup (swap happened before)
+                    if is_backup_crn:
+                        # Find the original CRN
+                        original_crn = next((k for k, v in self.original_backup_map.items() if v == crn), None)
+                        
+                        if original_crn:
+                            Logger.log(f"  ↳ Yedek CRN {crn} başarısız oldu, orijinal CRN {original_crn}'ye dönülüyor...")
+                            
+                            crn_list.remove(crn)
+                            crn_list.append(original_crn)
 
+                            self.backup_map.pop(crn, None)
+                        else:
+                            crn_list.remove(crn)
+                            
+                    # Check if we have a backup to try
+                    elif has_backup:
+                        backup_crn = self.backup_map[crn]
+                        Logger.log(f"  ↳ CRN {crn} başarısız oldu, yedek CRN {backup_crn} deneniyor...")
+                        
+                        crn_list.remove(crn)
+                        crn_list.append(backup_crn)
+                        
+                        self.backup_map.pop(crn)
+                        
+                    # No backup available, just remove
+                    else:
+                        Logger.log(f"  ↳ CRN {crn} listeden çıkarılıyor...")
+                        crn_list.remove(crn)
 
             # Log the results of scrn_list and determine if it is to be retried.
             for scrn_result in result_json["scrnResultList"]:
