@@ -20,6 +20,35 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 
 ## Nasıl Kurulur ve Kullanılır
 
+### 🚀 Hızlı Başlangıç (Önerilen)
+
+Kurulumu ve indirmeyi otomatize etmek için terminal üzerinden aşağıdaki komutları çalıştırabilirsiniz. Bu scriptler git, python vb. gereksinimleri kontrol eder, repo'yu indirir ve kurulumu yapar.
+
+- **Windows (CMD):**
+  ```cmd
+  curl -L -o quickstart.bat https://raw.githubusercontent.com/AtaTrkgl/itu-ders-secici/main/quickstart.bat && quickstart.bat
+  ```
+
+- **Windows (PowerShell):**
+  ```powershell
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/AtaTrkgl/itu-ders-secici/main/quickstart.bat" -OutFile "quickstart.bat"; .\quickstart.bat
+  ```
+
+- **Linux / macOS:**
+  ```bash
+  curl -sSL https://raw.githubusercontent.com/AtaTrkgl/itu-ders-secici/main/quickstart.sh | bash
+  ```
+
+Eğer repo'yu zaten indirdiyseniz:
+- **Windows:** `quickstart.bat` dosyasına çift tıklayın.
+- **Linux / macOS:** Terminalde `bash quickstart.sh` komutunu çalıştırın.
+
+Kurulum bittikten sonra şu komutlarla devam edebilirsiniz:
+- `just init`: Kurulum sihirbazını başlatır (config dosyasını oluşturur).
+- `just run`: Botu çalıştırır.
+
+### 🛠️ Manuel Kurulum
+
 1. İlk olarak _repo_'yu bilgisayarınıza kurun. Aşağıdaki iki seçenekten istediğiniz ile indirebilirsiniz.
    - Bilgisayarınızda _Git_ kurulu ise aşağıdaki kod'u kullanın.
 

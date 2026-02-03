@@ -13,7 +13,6 @@ system-reqs:
 _system-reqs-windows:
     @echo "Installing Windows dependencies..."
     winget install --id=astral-sh.uv  -e
-    @winget install --id Git.Git -e --source winget
 
 # Internal: Linux system requirements
 _system-reqs-linux:
@@ -23,7 +22,7 @@ _system-reqs-linux:
 # Internal: MacOS system requirements
 _system-reqs-macos:
     @echo "Installing MacOS dependencies..."
-    brew install git uv
+    brew install uv
 
 # Install project dependencies with uv
 install:
