@@ -12,7 +12,7 @@ system-reqs:
 # Internal: Windows system requirements
 _system-reqs-windows:
     @echo "Installing Windows dependencies..."
-    winget install --id=astral-sh.uv  -e
+    winget install --id=astral-sh.uv -e; if ($LASTEXITCODE -ne 0) { if (Get-Command "uv" -ErrorAction SilentlyContinue) { echo "uv is already installed." } else { exit $LASTEXITCODE } }
 
 # Internal: Linux system requirements
 _system-reqs-linux:
