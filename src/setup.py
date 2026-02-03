@@ -2,6 +2,7 @@ from requests import get
 from datetime import datetime, timedelta
 from os import path, mkdir
 import json
+import platform
 
 ITU_HELPER_LESSONS_URL = "https://raw.githubusercontent.com/itu-helper/data/main/lessons.psv"
 ITU_HELPER_COURSES_URL = "https://raw.githubusercontent.com/itu-helper/data/main/courses.psv"
@@ -18,7 +19,7 @@ def eval_input(inp: str):
     return inp.strip()
 
 
-def ask_for_crn_list() -> tuple[list[str], int]:
+def ask_for_crn_list() -> tuple[list[str], float]:
     crn_list = []
     last_inp = []
     total_creds = 0
@@ -104,7 +105,14 @@ if __name__ == "__main__":
         print("Bırakmak istediğiniz derslerin CRN'lerini girin, bitirmek için hiç bir şey girmeden Enter tuşuna basın.")
         scrn_list, _ = ask_for_crn_list()
 
-    selection_datetime = datetime(*[int(x) for x in time_text.split(" ")])
+    parts = [int(x) for x in time_text.split(" ")]
+    if len(parts) < 5:
+        print("Hata: Tarih ve saat girişi eksik. Lütfen YYYY.MM.DD ve HH:mm formatında girin.")
+        if platform.system() in ('Linux', 'Darwin'):
+            exit(64)  # EX_USAGE: Command line usage error (e.g., incorrect arguments or syntax)
+        else:
+            exit(87)  # Custom error code for configuration or input error on non-Unix systems
+    selection_datetime = datetime(parts[0], parts[1], parts[2], parts[3], parts[4])
 
     # Print the summary.
     print("Kurulum Tamamlandı, son olarak her şey doğru görünüyor mu?")
@@ -149,7 +157,7 @@ if __name__ == "__main__":
         mkdir(DATA_DIR)
 
     with open(path.join(DATA_DIR, CONFIG_FILE_NAME), 'w') as f:
-        json.dump(data_dict, f)
+        json.dump(data_dict, f, indent=4)
 
     print("Dosya başarıyla kaydedildi. Sihirbaz sonlandırıldı.")
     

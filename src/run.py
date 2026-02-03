@@ -94,8 +94,6 @@ if __name__ == "__main__":
     # Wait untill 5 mins before the registration starts, if time left to selection is < 5 mins, start instantly.
     if start_time is not None:
         delta = (start_time - datetime.now() - timedelta(seconds=60 *5)).total_seconds()
-
-    if start_time is not None:
         if delta > 0:
             Logger.log(f"Ders seçimine 5 dakika kalana kadar bekleniyor ({delta} saniye)...")
             sleep(delta)
@@ -135,24 +133,30 @@ if __name__ == "__main__":
 
     # If not testing, wait untill the registration by checking the HTTP request.
     if not test_mode:
-        # First, wait until 15 seconds remaining.
-        delta = (start_time - datetime.now() - timedelta(seconds=15)).total_seconds()
-        if delta > 0:
-            sleep(delta)
-        
-        # Now, instead of waiting another 15 seconds, check the time every `DELAY_BETWEEN_TIME_CHECKS` seconds, to account for the difference in time between the server and the local machine.
-        Logger.log("Ders seçiminin başlaması bekleniyor...")
-        api_check_start_time = datetime.now()
-        while request_manager.check_course_selection_time() is False:
-            sleep(DELAY_BETWEEN_TIME_CHECKS)
-            if (datetime.now() - api_check_start_time).total_seconds() >= MAX_EXTRA_WAIT_TIME:
-                Logger.log(f"Ders seçimi zaman kontrolü maksimum bekleme süresine ({MAX_EXTRA_WAIT_TIME} saniye) ulaşıldı. Ders seçimi başlamamış gözükmesine rağmen seçmeye çalışılacak.")
-                break
+        if start_time is not None:
+            # First, wait until 15 seconds remaining.
+            delta = (start_time - datetime.now() - timedelta(seconds=15)).total_seconds()
+            if delta > 0:
+                sleep(delta)
+            
+            # Now, instead of waiting another 15 seconds, check the time every `DELAY_BETWEEN_TIME_CHECKS` seconds, to account for the difference in time between the server and the local machine.
+            Logger.log("Ders seçiminin başlaması bekleniyor...")
+            api_check_start_time = datetime.now()
+            while request_manager.check_course_selection_time() is False:
+                sleep(DELAY_BETWEEN_TIME_CHECKS)
+                if (datetime.now() - api_check_start_time).total_seconds() >= MAX_EXTRA_WAIT_TIME:
+                    Logger.log(f"Ders seçimi zaman kontrolü maksimum bekleme süresine ({MAX_EXTRA_WAIT_TIME} saniye) ulaşıldı. Ders seçimi başlamamış gözükmesine rağmen seçmeye çalışılacak.")
+                    break
+        else:
+            Logger.log("Ders seçim zamanı belirlenmemiş, hemen başlanacak.")
     # If testing, wait for the time manually.
     else:
-        delta = (start_time - datetime.now()).total_seconds() + 0.1
-        if delta > 0:
-            sleep(delta)
+        if start_time is not None:
+            delta = (start_time - datetime.now()).total_seconds() + 0.1
+            if delta > 0:
+                sleep(delta)
+        else:
+            Logger.log("Ders seçim zamanı belirlenmemiş, hemen başlanacak.")
 
     Logger.log("Dersler Seçiliyor (Token arka planda sürekli yenileniyor)...")
     course_selection_start_time = datetime.now()

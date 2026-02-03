@@ -34,6 +34,8 @@ class ContinuousTokenFetcher(threading.Thread):
         if self.driver is None:
             self.driver = DriverManager.create_driver()
         
+        assert self.driver is not None
+        
         self.driver.get(self.url)
 
         # Wait to see if the URL changes to the login page
@@ -66,12 +68,15 @@ class ContinuousTokenFetcher(threading.Thread):
             for identity_card in identity_cards:
                 rows = identity_card.find_elements(By.TAG_NAME, "tr")
                 last_row = rows[-1]
-                content = last_row.get_attribute("innerHTML").lower()
+                content = (last_row.get_attribute("innerHTML") or "").lower()
                 if "durum" in content and "aktif" in content:
                     try:
-                        selected_field = rows[1].find_element(By.TAG_NAME, "td").get_attribute("innerHTML").strip()
-                        selected_studentid = rows[2].find_element(By.TAG_NAME, "td").get_attribute("innerHTML").strip()
-                        Logger.log(f"Seçilen hesap: \"{selected_field} ({selected_studentid})\".")
+                        selected_field = (rows[1].find_element(By.TAG_NAME, "td").get_attribute("innerHTML") or "").strip()
+                        selected_studentid = (rows[2].find_element(By.TAG_NAME, "td").get_attribute("innerHTML") or "").strip()
+                        if selected_field and selected_studentid:
+                            Logger.log(f"Seçilen hesap: {selected_field} - {selected_studentid}", silent=is_repeat)
+                        else:
+                            Logger.log("Seçilen hesap bilgileri alınamadı, butona tıklanacak.", silent=is_repeat)
                     except Exception:
                         pass
                     
@@ -87,6 +92,13 @@ class ContinuousTokenFetcher(threading.Thread):
     
     def _fetch_token_once(self) -> str:
         """Single token fetch operation. Re-login if logged out after refresh."""
+        if self.driver is None:
+            Logger.log("Sürücü başlatılmamış, giriş yapılıyor...")
+            self.login_to_kepler()
+
+        if self.driver is None:
+            return ""
+
         # if the url is not the target url, open the target url
         if self.url not in self.driver.current_url:
             Logger.log("Ders seçim sitesi açılıyor...", silent=self._started_event.is_set())
@@ -120,7 +132,10 @@ class ContinuousTokenFetcher(threading.Thread):
             try:
                 Logger.log("Yeni API Token aranıyor.", silent=True)
                 new_token = self._fetch_token_once()
-                if new_token and "ERROR" not in new_token and new_token != self._token:
+                
+                if not new_token:
+                    Logger.log("Token bulunamadı veya sürücü hazır değil.", silent=True)
+                elif "ERROR" not in new_token and new_token != self._token:
                     with self._token_lock:
                         self._token = new_token
                     Logger.log("API Token güncellendi.")
