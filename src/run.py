@@ -94,8 +94,6 @@ if __name__ == "__main__":
     # Wait untill 5 mins before the registration starts, if time left to selection is < 5 mins, start instantly.
     if start_time is not None:
         delta = (start_time - datetime.now() - timedelta(seconds=60 *5)).total_seconds()
-
-    if start_time is not None:
         if delta > 0:
             Logger.log(f"Ders seçimine 5 dakika kalana kadar bekleniyor ({delta} saniye)...")
             sleep(delta)
