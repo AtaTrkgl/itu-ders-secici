@@ -1,27 +1,49 @@
-# Run the setup script defined in readme
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-Command"]
+
+
+default:
+    @just --list
+
+# Install system dependencies (Cross-platform dispatcher)
+system-reqs:
+    @echo "Detected OS: {{os()}}"
+    @just _system-reqs-{{os()}}
+
+# Internal: Windows system requirements
+_system-reqs-windows:
+    @echo "Installing Windows dependencies..."
+    winget install --id=astral-sh.uv  -e
+    @winget install --id Git.Git -e --source winget
+
+# Internal: Linux system requirements
+_system-reqs-linux:
+    @echo "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Internal: MacOS system requirements
+_system-reqs-macos:
+    @echo "Installing MacOS dependencies..."
+    brew install git uv
+
+# Install project dependencies with uv
+install:
+    uv sync
+
+# Run setup wizard
 setup:
-    python src/setup.py
-
-# Run the run script with test flag
-test:
-    python src/run.py -test
-
-# Run the run script
-run:
-    python src/run.py
-
-# Run the setup script using uv
-setup-uv:
     uv run src/setup.py
 
-# Run the run script with test flag using uv
-test-uv:
-    uv run src/run.py -test
-
-# Run the run script using uv
-run-uv:
+# Run the program with uv
+run:
     uv run src/run.py
 
-# Clean artifacts (pycache and logs)
+# Run in test mode with uv
+test:
+    uv run src/run.py --test
+
+# Clean artifacts
 clean:
-    python -c "import shutil, pathlib; shutil.rmtree('src/__pycache__', ignore_errors=True); [p.unlink() for p in pathlib.Path('logs').glob('*.txt')]"
+    uv run "import shutil, pathlib; shutil.rmtree('src/__pycache__', ignore_errors=True); [p.unlink() for p in pathlib.Path('logs').glob('*.txt')]"
+
+# Initialize project fully
+init: install setup
