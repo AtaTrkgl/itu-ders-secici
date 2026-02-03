@@ -34,7 +34,9 @@ if ! command -v git &> /dev/null; then
 fi
 
 # 2. Check for Project/Clone
-if [ ! -f "Justfile" ]; then
+if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "[INFO] Git repository detected. Skipping clone..."
+elif [ ! -f "Justfile" ]; then
     echo "[INFO] Justfile not found. Cloning repository..."
     git clone https://github.com/AtaTrkgl/itu-ders-secici
     cd itu-ders-secici || { echo "[ERROR] Failed to enter directory."; exit 1; }

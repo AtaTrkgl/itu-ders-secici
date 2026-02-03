@@ -20,16 +20,21 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 :: 2. Check for Project/Clone
-if not exist "Justfile" (
-    echo [INFO] Justfile not found. Cloning repository...
-    git clone https://github.com/AtaTrkgl/itu-ders-secici
-    if %ERRORLEVEL% NEQ 0 (
-        echo [ERROR] Failed to clone repository.
-        pause
-        exit /b 1
+git rev-parse --is-inside-work-tree >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+    echo [INFO] Git repository detected. Skipping clone...
+) else (
+    if not exist "Justfile" (
+        echo [INFO] Justfile not found. Cloning repository...
+        git clone https://github.com/AtaTrkgl/itu-ders-secici
+        if %ERRORLEVEL% NEQ 0 (
+            echo [ERROR] Failed to clone repository.
+            pause
+            exit /b 1
+        )
+        cd itu-ders-secici
+        echo [INFO] Entered project directory.
     )
-    cd itu-ders-secici
-    echo [INFO] Entered project directory.
 )
 
 :: 3. Check/Install Just
