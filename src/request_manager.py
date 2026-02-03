@@ -1,5 +1,6 @@
 import requests
 import json
+from typing import Callable, Optional, cast
 from logger import Logger
 
 class RequestManager:
@@ -56,15 +57,15 @@ class RequestManager:
         "VAL22": "CRN {} daha önce CC ve üstü harf notu ile verildiği için yükseltmeye alınamaz."
     }
 
-    def __init__(self, token, course_selection_url: str, course_time_check_url: str) -> None:
+    def __init__(self, token: str | Callable[[], str], course_selection_url: str, course_time_check_url: str) -> None:
         """
         Args:
             token: String token or callable token getter function
             course_selection_url: Course selection API URL
             course_time_check_url: Time check API URL
         """
-        self._token = token
-        self._token_getter = token if callable(token) else None
+        self._token: str | Callable[[], str] = token
+        self._token_getter: Optional[Callable[[], str]] = token if callable(token) else None
         self.course_selection_url = course_selection_url
         self.course_time_check_url = course_time_check_url
 
@@ -72,7 +73,7 @@ class RequestManager:
         """Returns the current token."""
         if self._token_getter:
             return self._token_getter()
-        return self._token
+        return cast(str, self._token)
 
     def _get_headers(self) -> dict[str, str]:
         return {
@@ -88,6 +89,7 @@ class RequestManager:
             result_json = json.loads(response.text)
             enrollment_data = result_json["kayitZamanKontrolResult"]
             return enrollment_data["ogrenciSinifaKayitOlabilir"] or enrollment_data["ogrenciSiniftanAyrilabilir"]
+            
         except Exception:
             return False
 
