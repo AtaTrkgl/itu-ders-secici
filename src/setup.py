@@ -157,7 +157,7 @@ if __name__ == "__main__":
         mkdir(DATA_DIR)
 
     with open(path.join(DATA_DIR, CONFIG_FILE_NAME), 'w') as f:
-        json.dump(data_dict, f)
+        json.dump(data_dict, f, indent=4)
 
     print("Dosya başarıyla kaydedildi. Sihirbaz sonlandırıldı.")
     
