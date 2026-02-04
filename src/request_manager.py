@@ -14,14 +14,13 @@ class RequestManager:
         "VAL16",
         "ERRLoad",
         "NULLParam-CheckOgrenciKayitZamaniKontrolu",
-
-        # Below are the codes that are not in the original source code.
         "Kontenjan Dolu",
         "VAL21",
     ]
     
     # Codes that indicate quota is full - should switch to backup CRN
     quota_full_codes = ["VAL06", "Kontenjan Dolu"]
+    success_codes = ["successResult", "Ekleme İşlemi Başarılı", "Silme İşlemi Başarılı"]
     
     # Source: https://github.com/MustafaKrc/ITU-CRN-Picker/blob/ffb2ca20c197092f54ade466439d890cd61acab6/core/crn_picker.py#L31
     return_values = {
@@ -115,17 +114,22 @@ class RequestManager:
                 Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
                 
                 is_retriable = result_code in RequestManager.codes_to_try_again
-                is_quota_full = result_code in RequestManager.quota_full_codes
+                # Use the backup only if the quota is full, other codes in the codes_to_try_again array are usually caused by timing problems etc.
+                should_use_backup = result_code in RequestManager.quota_full_codes
+                is_success = result_code in RequestManager.success_codes
                 has_backup = crn in self.backup_map
                 is_backup_crn = crn in self.original_backup_map.values()
             
-                if is_retriable:
-                    if is_quota_full and has_backup:
+                if is_success:
+                    crn_list.remove(crn)
+                    pass
+                elif is_retriable:
+                    if should_use_backup and has_backup:
                         backup_crn = self.backup_map[crn]
                         if not is_backup_crn:
-                            Logger.log(f"CRN {crn} yerine yedeği ({backup_crn}) denencek tekrar denenecek...")
+                            Logger.log(f"CRN {crn} yerine yedeği ({backup_crn}) denenecek...")
                         else:
-                            Logger.log(f"Yedek CRN {crn} başarısız oldu, orijinal CRN {backup_crn} denenmeye devam edilecek...")
+                            Logger.log(f"Yedek CRN {crn} başarısız oldu, orijinal CRN ({backup_crn}) denenmeye devam edilecek...")
 
                         crn_list.remove(crn)
                         crn_list.append(backup_crn)
@@ -135,7 +139,6 @@ class RequestManager:
                     else:
                         Logger.log(f"CRN {crn} tekrar denenecek...")
                         pass
-                # We can't retry
                 else:
                     # Check if this CRN is currently a backup (swap happened before)
                     if is_backup_crn:
@@ -143,7 +146,7 @@ class RequestManager:
                         original_crn = next((k for k, v in self.original_backup_map.items() if v == crn), None)
                         
                         if original_crn:
-                            Logger.log(f"  ↳ Yedek CRN {crn} başarısız oldu, orijinal CRN {original_crn}'ye dönülüyor...")
+                            Logger.log(f"Yedek CRN {crn} başarısız oldu, orijinal CRN'ye ({original_crn}) dönülüyor...")
                             
                             crn_list.remove(crn)
                             crn_list.append(original_crn)
@@ -155,7 +158,7 @@ class RequestManager:
                     # Check if we have a backup to try
                     elif has_backup:
                         backup_crn = self.backup_map[crn]
-                        Logger.log(f"  ↳ CRN {crn} başarısız oldu, yedek CRN {backup_crn} deneniyor...")
+                        Logger.log(f"CRN {crn} başarısız oldu, yedeği olan ({backup_crn}) denenecek...")
                         
                         crn_list.remove(crn)
                         crn_list.append(backup_crn)
@@ -164,7 +167,7 @@ class RequestManager:
                         
                     # No backup available, just remove
                     else:
-                        Logger.log(f"  ↳ CRN {crn} listeden çıkarılıyor...")
+                        Logger.log(f"CRN {crn} listeden çıkarılıyor...")
                         crn_list.remove(crn)
 
             # Log the results of scrn_list and determine if it is to be retried.
