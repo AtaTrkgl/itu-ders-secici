@@ -171,8 +171,7 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 
 Bu programın en güzel tarafı, ders seçimi için [İTÜ OBS (Kepler)](https://obs.itu.edu.tr/ogrenci/) arayüzü yerine _HTTP request_ kullanmasıdır. Bu sayede, aktif bir ders seçim zamanı içinde değilken ve ders kayıt taslak da aktif değilken bile test edebilirsiniz.
 
-Öncelikle test için, ders seçim zamanını daha yakın bir vakit olarak girin, şu andan yaklaşık 5-10 dakika ilerisi önerlir. Daha sonra, programı aşağıdaki komut ile çalıştırın
-
+Programı test modunda çalıştırmak için, aşağıdaki komutu çalıştırın:
 
 ```bash
 python src/run.py -test

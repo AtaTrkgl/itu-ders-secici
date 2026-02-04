@@ -16,7 +16,7 @@ class ContinuousTokenFetcher(threading.Thread):
     Thread class that continuously fetches tokens in the background.
     Provides thread-safe token access.
     """
-    def __init__(self, url: str, login: str, password: str) -> None:
+    def __init__(self, url: str, login: str, password: str, use_headless_browser: bool=False) -> None:
         super().__init__(daemon=True)
         self.url = url
         self.creds = [login, password]
@@ -25,6 +25,7 @@ class ContinuousTokenFetcher(threading.Thread):
         self._token_lock = threading.Lock()
         self._running = False
         self._started_event = threading.Event()
+        self.use_headless_browser = use_headless_browser
     
     def login_to_kepler(self) -> None:
         """Starts the driver and performs login."""
@@ -32,7 +33,7 @@ class ContinuousTokenFetcher(threading.Thread):
 
         Logger.log("Kepler açılıyor...", silent=is_repeat)
         if self.driver is None:
-            self.driver = DriverManager.create_driver()
+            self.driver = DriverManager.create_driver(headless=self.use_headless_browser)
         
         self.driver.get(self.url)
 

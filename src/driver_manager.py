@@ -12,15 +12,16 @@ class DriverManager:
     active_drivers = []
 
     @staticmethod
-    def create_driver():
+    def create_driver(headless: bool=False):
         Logger.log("Web sürücüsü başlatılıyor...")
         chrome_options = Options()
 
         chrome_options.add_argument("--disable-extensions")
-        # chrome_options.add_argument("--headless")
         chrome_options.add_argument("log-level=2")
         # chrome_options.add_argument("--no-proxy-server")
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        if headless:
+            chrome_options.add_argument("--headless")
 
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         DriverManager.active_drivers.append(driver)

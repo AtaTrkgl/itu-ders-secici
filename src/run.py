@@ -82,11 +82,13 @@ def request_course_selection(token: str, crn_list: list[str], scrn_list: list[st
 
 parser = argparse.ArgumentParser(prog="itu-ders-secici", description="İTÜ OBS (Kepler) üzerinden zamanlayıcılı ders seçim uygulaması.")
 parser.add_argument("-test", "--test", "-t", help="Test modunu açar, ders kayıt vaktinin gelip gelmediğine bakmaksızın seçim yapar.", action="store_true", default=False)
+parser.add_argument("--show-browser", help="Tarayıcı penceresini gösterir.", action="store_true", default=False)
 
 if __name__ == "__main__":
     args = parser.parse_args()
     test_mode = args.test
-    
+    headless = not args.show_browser
+
     # If in test mode, spam for 10 seconds only.
     if test_mode:
         SPAM_DUR = 10
@@ -113,7 +115,7 @@ if __name__ == "__main__":
 
     # === MULTI-THREADED TOKEN FETCHING ===
     # Start token fetcher (will continuously refresh token in background)
-    token_fetcher = ContinuousTokenFetcher(TARGET_URL, login, password)
+    token_fetcher = ContinuousTokenFetcher(TARGET_URL, login, password, use_headless_browser=headless)
     token_fetcher.login_to_kepler()  # Perform login
     token_fetcher.start()  # Start the thread
     
@@ -139,8 +141,12 @@ if __name__ == "__main__":
             token_fetcher.driver.minimize_window()
         except:
             pass
-    Logger.log("Ders seçimine kadar bekleniliyor (Chrome penceresini kapatmayın)...")
     
+    if headless:
+        Logger.log("Ders seçimine kadar bekleniliyor...")
+    else:
+        Logger.log("Ders seçimine kadar bekleniliyor, bu esnada Chrome penceresini kapatmayın...")
+
     # Pass token getter function to RequestManager (will get fresh token each time)
     request_manager = RequestManager(token_fetcher.get_token, COURSE_SELECTION_URL, COURSE_TIME_CHECK_URL, backup_map)
 
@@ -180,8 +186,10 @@ if __name__ == "__main__":
             Logger.log("Alınamayan dersler tekrar deneniyor...")
             print()
         else:
-            Logger.log("Alınamayan dersler tekrar denenecek fakat test modunda olduğundan dolayı bu aşama geçiliyor...")
-            print()
+            print("\n" + "="*20 + " TEST MODU " + "="*20)
+            Logger.log("Alınamayan dersler tekrar denenecekti fakat test modunda olduğundan dolayı bu aşama atlanacak...")
+            Logger.log("Kepler ders seçim işlem geçmişi sayfasını kontrol edin. Hata olarak aktif bir ders seçim zamanı içinde değilsiniz mesajını görüyorsanız, test başarılı demektir.")
+            print("="*51 + "\n")
             break
 
     # Stop the token fetcher
