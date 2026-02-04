@@ -106,6 +106,29 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
 
       </details>
 
+      <details>
+         <summary>Yedek CRN Kullanımı</summary>
+
+      Bir dersin kontenjanının dolması durumunda otomatik olarak yedek bir CRN denenmesini istiyorsanız, `"CRN:YEDEK_CRN"` formatını kullanabilirsiniz.
+
+      Örneğin, _21345_ CRN'li dersin kontenjanı dolarsa _21346_ CRN'li dersin alınmasını istiyorsanız:
+
+      ```json
+      {
+         "courses":
+         {
+            "crn": [21340, "21345:21346", 21332],
+            "scrn": []
+         }
+      }  
+      ```
+
+      Bu örnekte:
+      - _21340_ ve _21332_ normal şekilde alınmaya çalışılacak
+      - _21345_ alınamazsa (kontenjan doluysa), otomatik olarak _21346_ denenecek
+
+      </details>
+
    Yukarıdaki yöntemlerden herhangi birini tamamladığınız takdirde, dosya yapınız aşağıdaki gibi görünmeli.
 
    ```text

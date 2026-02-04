@@ -4,8 +4,8 @@ from logger import Logger
 
 class RequestManager:
 
-    # Source: https://github.com/MustafaKrc/ITU-CRN-Picker/blob/ffb2ca20c197092f54ade466439d890cd61acab6/core/crn_picker.py#L31
-    codes_to_try_again = [  # The codes that indicate the operation was not successful but can be tried again.
+    # The codes that indicate the operation was not successful but can be tried again.
+    codes_to_try_again = [
         "VAL01",
         "VAL02",
         "VAL06",
@@ -14,11 +14,15 @@ class RequestManager:
         "VAL16",
         "ERRLoad",
         "NULLParam-CheckOgrenciKayitZamaniKontrolu",
-
-        # Below are the codes that are not in the original source code.
         "Kontenjan Dolu",
         "VAL21",
     ]
+    
+    # Codes that indicate quota is full - should switch to backup CRN
+    quota_full_codes = ["VAL06", "Kontenjan Dolu"]
+    success_codes = ["successResult", "Ekleme İşlemi Başarılı", "Silme İşlemi Başarılı"]
+    
+    # Source: https://github.com/MustafaKrc/ITU-CRN-Picker/blob/ffb2ca20c197092f54ade466439d890cd61acab6/core/crn_picker.py#L31
     return_values = {
         "successResult": "CRN {} için işlem başarıyla tamamlandı.",
         "errorResult": "CRN {} için Operasyon tamamlanamadı.",
@@ -56,17 +60,20 @@ class RequestManager:
         "VAL22": "CRN {} daha önce CC ve üstü harf notu ile verildiği için yükseltmeye alınamaz."
     }
 
-    def __init__(self, token, course_selection_url: str, course_time_check_url: str) -> None:
+    def __init__(self, token, course_selection_url: str, course_time_check_url: str, backup_map: dict[str, str] = None) -> None:
         """
         Args:
             token: String token or callable token getter function
             course_selection_url: Course selection API URL
             course_time_check_url: Time check API URL
+            backup_map: Dictionary mapping primary CRN to backup CRN
         """
         self._token = token
         self._token_getter = token if callable(token) else None
         self.course_selection_url = course_selection_url
         self.course_time_check_url = course_time_check_url
+        self.backup_map = backup_map or {}
+        self.original_backup_map = dict(self.backup_map)  # Keep a copy of the original backup map
 
     def _get_current_token(self) -> str:
         """Returns the current token."""
@@ -104,19 +111,71 @@ class RequestManager:
                 crn = crn_result["crn"]
                 result_code = crn_result["resultCode"]
 
-                Logger.log(RequestManager.return_values[result_code].format(crn))
-                if result_code in RequestManager.codes_to_try_again:
-                    Logger.log(f"CRN {crn} tekrar denenecek...")
-                else:
+                Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
+                
+                is_retriable = result_code in RequestManager.codes_to_try_again
+                # Use the backup only if the quota is full, other codes in the codes_to_try_again array are usually caused by timing problems etc.
+                should_use_backup = result_code in RequestManager.quota_full_codes
+                is_success = result_code in RequestManager.success_codes
+                has_backup = crn in self.backup_map
+                is_backup_crn = crn in self.original_backup_map.values()
+            
+                if is_success:
                     crn_list.remove(crn)
+                    pass
+                elif is_retriable:
+                    if should_use_backup and has_backup:
+                        backup_crn = self.backup_map[crn]
+                        if not is_backup_crn:
+                            Logger.log(f"CRN {crn} yerine yedeği ({backup_crn}) denenecek...")
+                        else:
+                            Logger.log(f"Yedek CRN {crn} başarısız oldu, orijinal CRN ({backup_crn}) denenmeye devam edilecek...")
 
+                        crn_list.remove(crn)
+                        crn_list.append(backup_crn)
+
+                        self.backup_map.pop(crn)
+                        self.backup_map[backup_crn] = crn
+                    else:
+                        Logger.log(f"CRN {crn} tekrar denenecek...")
+                        pass
+                else:
+                    # Check if this CRN is currently a backup (swap happened before)
+                    if is_backup_crn:
+                        # Find the original CRN
+                        original_crn = next((k for k, v in self.original_backup_map.items() if v == crn), None)
+                        
+                        if original_crn:
+                            Logger.log(f"Yedek CRN {crn} başarısız oldu, orijinal CRN'ye ({original_crn}) dönülüyor...")
+                            
+                            crn_list.remove(crn)
+                            crn_list.append(original_crn)
+
+                            self.backup_map.pop(crn, None)
+                        else:
+                            crn_list.remove(crn)
+                            
+                    # Check if we have a backup to try
+                    elif has_backup:
+                        backup_crn = self.backup_map[crn]
+                        Logger.log(f"CRN {crn} başarısız oldu, yedeği olan ({backup_crn}) denenecek...")
+                        
+                        crn_list.remove(crn)
+                        crn_list.append(backup_crn)
+                        
+                        self.backup_map.pop(crn)
+                        
+                    # No backup available, just remove
+                    else:
+                        Logger.log(f"CRN {crn} listeden çıkarılıyor...")
+                        crn_list.remove(crn)
 
             # Log the results of scrn_list and determine if it is to be retried.
             for scrn_result in result_json["scrnResultList"]:
                 crn = scrn_result["crn"]
                 result_code = scrn_result["resultCode"]
 
-                Logger.log(RequestManager.return_values[result_code].format(crn))
+                Logger.log(RequestManager.return_values.get(result_code, f"CRN {{}} için bilinmeyen hata kodu: {result_code}").format(crn))
                 if result_code in RequestManager.codes_to_try_again:
                     Logger.log(f"CRN {crn} tekrar denenecek...")
                 else:
