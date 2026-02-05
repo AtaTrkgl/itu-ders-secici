@@ -179,9 +179,14 @@ if __name__ == "__main__":
         crn_list, scrn_list, timed_out = request_manager.request_course_selection(crn_list, scrn_list)
         
         if timed_out:
-            Logger.log("Ders seçim isteği zaman aşımına uğradı, program 1 saat boyunca duraklatılacak.")
+            Logger.log("Ders seçim isteği zaman aşımına uğradı, program 1 saat boyunca bekleyecek.")
             Logger.log("Programı sonlandırmak için \"Ctrl+C\" yapabilirsiniz.")
-            sleep(TIMEOUT_WAIT_DUR)
+            try:
+                sleep(TIMEOUT_WAIT_DUR)
+            except KeyboardInterrupt:
+                Logger.log("Program kullanıcı tarafından sonlandırıldı.")
+                token_fetcher.stop()
+                exit()
             break
 
         if len(crn_list) == 0 and len(scrn_list) == 0:

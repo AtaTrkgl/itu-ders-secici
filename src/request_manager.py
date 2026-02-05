@@ -103,6 +103,7 @@ class RequestManager:
         response = requests.post(self.course_selection_url, headers=self._get_headers(), json={"ECRN": crn_list, "SCRN": scrn_list})
         Logger.log(f"Ders Seçim request response mesajı: {response.text}", silent=True)
         
+        time_out_detected = False
         try:
             result_json = json.loads(response.text)
 
@@ -122,7 +123,8 @@ class RequestManager:
                 is_backup_crn = crn in self.original_backup_map.values()
             
                 if timed_out:
-                    return crn_list, scrn_list, True
+                    time_out_detected = True
+                    return crn_list, scrn_list, time_out_detected
                 elif is_success:
                     crn_list.remove(crn)
                 elif is_retriable:
@@ -186,4 +188,4 @@ class RequestManager:
         except Exception as e:
             Logger.log(f"CRN listesi işlenirken bir hata meydana geldi: {e}", silent=True)
         finally:
-            return crn_list, scrn_list, False
+            return crn_list, scrn_list, time_out_detected
