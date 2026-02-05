@@ -21,6 +21,7 @@ DELAY_BETWEEN_TRIES = 3 # WARNING: If you want to tweak this value, decreasing i
 DELAY_BETWEEN_TIME_CHECKS = .1  # Determines how often the program will check if the course selection time has started, in seconds.
 SPAM_DUR = 60 * 10 # Deternimes how long the program will spam the API HTTP request, in seconds.
 MAX_EXTRA_WAIT_TIME = 60 * 2 # Determines the maximum extra time the program will wait for the course selection to start, in seconds.
+TIMEOUT_WAIT_DUR = 60 * 60 # If a timeout is detected, the program will wait for this amount of time before trying again.
 
 def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], dict[str, str], datetime | None]:
     Logger.log("Input dosyaları okunuyor...")
@@ -175,9 +176,14 @@ if __name__ == "__main__":
     course_selection_start_time = datetime.now()
     # Select courses, do it until `DURATION_TO_SPAM` secs after the registration starts.
     while start_time is None or (datetime.now() - course_selection_start_time).total_seconds() < SPAM_DUR:
-        crn_list, scrn_list = request_manager.request_course_selection(crn_list, scrn_list)
-        sleep(DELAY_BETWEEN_TRIES)
+        crn_list, scrn_list, timed_out = request_manager.request_course_selection(crn_list, scrn_list)
         
+        if timed_out:
+            Logger.log("Ders seçim isteği zaman aşımına uğradı, program 1 saat boyunca duraklatılacak.")
+            Logger.log("Programı sonlandırmak için \"Ctrl+C\" yapabilirsiniz.")
+            sleep(TIMEOUT_WAIT_DUR)
+            break
+
         if len(crn_list) == 0 and len(scrn_list) == 0:
             Logger.log(f"Bütün dersler başarıyla alındı/bırakıldı.")
             break
@@ -192,6 +198,7 @@ if __name__ == "__main__":
             print("="*51 + "\n")
             break
 
+        sleep(DELAY_BETWEEN_TRIES)
     # Stop the token fetcher
     token_fetcher.stop()
 

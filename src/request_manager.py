@@ -15,12 +15,12 @@ class RequestManager:
         "ERRLoad",
         "NULLParam-CheckOgrenciKayitZamaniKontrolu",
         "Kontenjan Dolu",
-        "VAL21",
     ]
     
     # Codes that indicate quota is full - should switch to backup CRN
     quota_full_codes = ["VAL06", "Kontenjan Dolu"]
     success_codes = ["successResult", "Ekleme İşlemi Başarılı", "Silme İşlemi Başarılı"]
+    timeout_codes = ["VAL21"]
     
     # Source: https://github.com/MustafaKrc/ITU-CRN-Picker/blob/ffb2ca20c197092f54ade466439d890cd61acab6/core/crn_picker.py#L31
     return_values = {
@@ -56,7 +56,7 @@ class RequestManager:
         # Below are the codes that are not in the original source code.
         "Kontenjan Dolu" : "CRN {} için kontenjan dolu olduğundan dolayı alınamadı.",
         "Silme İşlemi Başarılı" : "CRN {} için silme işlemi başarıyla tamamlandı.",
-        "VAL21": "İşlem sırasında bir hata oluştu.",
+        "VAL21": "İstek limitini aşıldığı için 1 saatlik ders seçim engeli yenildi.",
         "VAL22": "CRN {} daha önce CC ve üstü harf notu ile verildiği için yükseltmeye alınamaz."
     }
 
@@ -98,7 +98,7 @@ class RequestManager:
         except Exception:
             return False
 
-    def request_course_selection(self, crn_list: list[str], scrn_list: list[str]) -> tuple[list[str], list[str]]:
+    def request_course_selection(self, crn_list: list[str], scrn_list: list[str]) -> tuple[list[str], list[str], bool]:
         # Send the request to the server.
         response = requests.post(self.course_selection_url, headers=self._get_headers(), json={"ECRN": crn_list, "SCRN": scrn_list})
         Logger.log(f"Ders Seçim request response mesajı: {response.text}", silent=True)
@@ -117,12 +117,14 @@ class RequestManager:
                 # Use the backup only if the quota is full, other codes in the codes_to_try_again array are usually caused by timing problems etc.
                 should_use_backup = result_code in RequestManager.quota_full_codes
                 is_success = result_code in RequestManager.success_codes
+                timed_out = result_code in RequestManager.timeout_codes
                 has_backup = crn in self.backup_map
                 is_backup_crn = crn in self.original_backup_map.values()
             
-                if is_success:
+                if timed_out:
+                    return crn_list, scrn_list, True
+                elif is_success:
                     crn_list.remove(crn)
-                    pass
                 elif is_retriable:
                     if should_use_backup and has_backup:
                         backup_crn = self.backup_map[crn]
@@ -138,7 +140,6 @@ class RequestManager:
                         self.backup_map[backup_crn] = crn
                     else:
                         Logger.log(f"CRN {crn} tekrar denenecek...")
-                        pass
                 else:
                     # Check if this CRN is currently a backup (swap happened before)
                     if is_backup_crn:
@@ -180,9 +181,9 @@ class RequestManager:
                     Logger.log(f"CRN {crn} tekrar denenecek...")
                 else:
                     scrn_list.remove(crn)
-
-
-            return crn_list, scrn_list
+        except json.JSONDecodeError as e:
+            Logger.log(f"CRN listesi işlenirken JSON hatası meydana geldi, request geçerli bir JSON döndürmedi: {e}", silent=True)
         except Exception as e:
             Logger.log(f"CRN listesi işlenirken bir hata meydana geldi: {e}", silent=True)
-            return crn_list, scrn_list
+        finally:
+            return crn_list, scrn_list, False
