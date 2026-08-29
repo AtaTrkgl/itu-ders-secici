@@ -1,0 +1,28 @@
+[project]
+name = "itu-ders-secici"
+version = "1.0.0"
+description = "İTÜ Kepler üzerinden, önceden zamanlanmış şekilde ve HTTP request kullanarak otomatik ders seçme aracı."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Ata Türkoğlu", email = "ataturkoglu2003@hotmail.com" }
+]
+requires-python = ">=3.13"
+keywords = ["itu", "kepler", "ders-secim", "otomasyon", "selenium"]
+dependencies = [
+    "blinker==1.7.0",
+    "requests==2.27.1",
+    "selenium==4.24.0",
+    "selenium-wire==5.1.0",
+    "setuptools==70.0.0",
+    "webdriver-manager==4.0.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/AtaTrkgl/itu-ders-secici"
+Repository = "https://github.com/AtaTrkgl/itu-ders-secici"
+Issues = "https://github.com/AtaTrkgl/itu-ders-secici/issues"
+
+[tool.uv]
+package = false

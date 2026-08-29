@@ -1,2 +1,5 @@
 data/*
 logs/*
+.ruff_cache
+.vscode
+.venv
