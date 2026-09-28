@@ -38,11 +38,11 @@ ANTI_TIMEOUT_SLEEP_THRESHOLD = 50
 ANTI_TIMEOUT_SLEEP_DUR = 10 * 60
 
 def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], dict[str, str], datetime | None]:
-    Logger.log("Input dosyaları okunuyor...")
+    Logger.log("Config dosyası okunuyor...")
     try:
         data = json.load(open(CONFIG_FILE_PATH))
     except FileNotFoundError:
-        Logger.log("!!!!! Config dosyası okunamadı! Lütfen `python src/setup.py` komutunu çalıştırın ya da dosyayı README.md ile belirtildiği üzere kendiniz oluşturun.")
+        Logger.log("Config dosyası okunamadı! Lütfen `python src/setup.py` komutunu çalıştırın.\nDaha fazla bilgi için:\nhttps://github.com/AtaTrkgl/itu-ders-secici#nas%C4%B1l-kurulur-ve-kullan%C4%B1l%C4%B1r")
         sys.exit(1)
     except Exception as e:
         raise e
