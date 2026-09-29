@@ -10,6 +10,7 @@ import os
 import argparse
 import json
 from random import uniform
+import sys
 
 # === CONSTANTS ===
 CONFIG_FILE_PATH = "data/config.json"
@@ -37,9 +38,14 @@ ANTI_TIMEOUT_SLEEP_THRESHOLD = 50
 ANTI_TIMEOUT_SLEEP_DUR = 10 * 60
 
 def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], dict[str, str], datetime | None]:
-    Logger.log("Input dosyaları okunuyor...")
-    data = json.load(open(CONFIG_FILE_PATH))
-    
+    Logger.log("Config dosyası okunuyor...")
+    try:
+        data = json.load(open(CONFIG_FILE_PATH))
+    except FileNotFoundError:
+        Logger.log("Config dosyası okunamadı! Lütfen `python src/setup.py` komutunu çalıştırın.\nDaha fazla bilgi için:\nhttps://github.com/AtaTrkgl/itu-ders-secici#nas%C4%B1l-kurulur-ve-kullan%C4%B1l%C4%B1r")
+        sys.exit(1)
+    except Exception as e:
+        raise e
     # Read account details
     account = data.get("account")
     login, password = account.get("username"), account.get("password")
@@ -85,12 +91,12 @@ def read_inputs(test_mode: bool=False) -> tuple[str, str, list[str], list[str], 
         except Exception:
             start_time = datetime.now()
             Logger.log(f"Ders seçim zamanı ve tarihi girilmedi, ders seçimine hemen başlanacak.")
-    
+
     return login, password, crn_list, scrn_list, backup_map, start_time
 
 def request_course_selection(token: str, crn_list: list[str], scrn_list: list[str]) -> str:
     response = requests.post(COURSE_SELECTION_URL, headers={'Authorization': token}, json={"ECRN": crn_list, "SCRN": scrn_list})
-    
+
     result_code = response.text
     return result_code
 
@@ -136,14 +142,14 @@ if __name__ == "__main__":
     token_fetcher = ContinuousTokenFetcher(TARGET_URL, login, password, use_headless_browser=headless)
     token_fetcher.login_to_kepler()  # Perform login
     token_fetcher.start()  # Start the thread
-    
+
     # Wait for the first token to be received
     Logger.log("İlk API Token bekleniyor...")
     if not token_fetcher.wait_for_first_token(timeout=120):
         Logger.log("Token alınamadı, program sonlandırılıyor.")
         token_fetcher.stop()
         exit(1)
-    
+
     Logger.log("Token alındı, arka planda sürekli yenilenmeye devam edecek.")
 
     # Wait untill 45 secs before the registration starts.
@@ -159,7 +165,7 @@ if __name__ == "__main__":
             token_fetcher.driver.minimize_window()
         except:
             pass
-    
+
     if headless:
         Logger.log("Ders seçimine kadar bekleniliyor...")
     else:
@@ -199,7 +205,7 @@ if __name__ == "__main__":
         Logger.log(f"İlk requestten geçen süre: {get_dur_string((datetime.now() - first_req_time).total_seconds())} saniye.", silent=True)
         request_counter += 1
         crn_list, scrn_list, timed_out = request_manager.request_course_selection(crn_list, scrn_list)
-        
+
         if timed_out:
             Logger.log(f"Ders seçim isteği zaman aşımına uğradı, program {get_dur_string(TIMEOUT_WAIT_DUR)} boyunca bekleyecek.")
             Logger.log("Programı sonlandırmak için \"Ctrl+C\" yapabilirsiniz.")

@@ -38,6 +38,8 @@ Bu _repo_ sayesinde otomatik bir şekilde, önceden zamanlayarak ve _HTTP reques
    pip install -r requirements.txt
    ```
 
+   > ⚠️ Linux işletim sisteminde `selenium-wire` paketi kaynaklı sorunlar görülebiliyor. Bu durumda [Linux'ta selenium-wire sorunları](#linuxta-selenium-wire-sorunları) bölümüne bakınız.
+
 4. Daha sonra yapmanız gereken, gerekli bilgileri programa girmek. Bunun için kurulum sihirbazını kullanmanız önerilir fakat isterseniz manuel olarak da girebilirsiniz.
    > ⚠️ Program zamanlama için bilgisayarınızın lokal zamanını kullanmaktadır, eğer bilgisayarınız Türkiye saat diliminde değil ise, lokal zamanınıza göre ders seçimi saatini ve tarihini giriniz.
    
@@ -181,6 +183,23 @@ python src/run.py -test
 ```
 
 Ardından sonuçları [İTÜ OBS (Kepler) - Ders Kayıt İşlem Geçmişi](https://obs.itu.edu.tr/ogrenci/DersKayitIslemleri/DersKayitIslemGecmisi) sayfasından görebilirsiniz (Hata olarak aktif bir ders seçim zamanı içinde değilsiniz mesajını göreceksiniz).
+
+## Bilinen Sorunlar ve Çözümleri
+
+### Linux'ta selenium-wire Sorunları
+
+Varsayılan kurulum `selenium-wire` kullanır. Linux dağıtımınızda bu paketle ilgili bir sorun yaşarsanız alternatif olarak `selenium-wire-lw` kullanmayı deneyebilirsiniz. Program sorunsuz çalışıyorsa bu değişikliği yapmanız gerekmez.
+
+İki paket de aynı `seleniumwire` modülünün dosyalarını kullandığından birlikte kurulmamalıdır. Önce yukarıdaki normal paket kurulumunu tamamlayın. Ardından programı çalıştırdığınız Python ortamında (sanal ortam kullanıyorsanız onu etkinleştirerek) aşağıdaki komutları sırayla çalıştırın. İlk komut, daha önce iki paketi de kurmuş olmanız durumunda çakışan kurulumu temizler; bir paketin kurulu olmadığını belirten uyarı almanız normaldir.
+
+```bash
+python -m pip uninstall selenium-wire selenium-wire-lw
+python -m pip install selenium-wire-lw==3.0.2
+```
+
+Kaldırma işlemi sırasında onay istendiğinde `y` yazıp Enter'a basın. Kodda değişiklik yapmanız gerekmez; kurulumun kalan adımlarına devam edebilirsiniz.
+
+**Not:** Daha sonra `pip install -r requirements.txt` komutunu tekrar çalıştırırsanız `selenium-wire` yeniden kurulur. `selenium-wire-lw` kullanmaya devam etmek için yukarıdaki kaldırma ve kurma adımlarını tekrar uygulayın.
 
 ## Geliştirme Planları
 
